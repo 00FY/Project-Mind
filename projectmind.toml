@@ -1,0 +1,40 @@
+# ProjectMind configuration file
+# Documentation: https://github.com/Anushree-007/projectmind
+
+[project]
+name = "test-project"
+root = "."
+memory_dir = ".projectmind"
+exclude_patterns = [
+    "**/.env",
+    "**/secrets/**",
+    "**/__pycache__/**",
+    "**/.git/**",
+    "**/node_modules/**",
+    "**/*.pyc",
+]
+
+[retrieval]
+# Maximum tokens to include in a context response
+token_budget = 8000
+# Maximum knowledge items to retrieve per query
+max_knowledge_items = 10
+# Maximum code chunks to retrieve per query
+max_code_chunks = 5
+# Minimum relevance score (0.0–1.0) for retrieved items
+min_relevance_score = 0.3
+
+[mcp]
+# MCP server transport: "stdio" (for Claude Desktop) or "sse" / "http"
+transport = "stdio"
+host = "localhost"
+port = 3333
+enabled = true
+
+[logging]
+level = "INFO"   # DEBUG | INFO | WARNING | ERROR
+json_format = false
+
+[database]
+# SQLite database path (defaults to <memory_dir>/projectmind.db)
+# path = ".projectmind/projectmind.db"
