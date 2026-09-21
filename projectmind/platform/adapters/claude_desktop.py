@@ -36,7 +36,7 @@ logger = get_logger("adapters.claude_desktop")
 try:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.syntax import Syntax
+
     _RICH = True
     console = Console()
 except ImportError:
@@ -52,6 +52,7 @@ except ImportError:
 def _get_claude_config_path() -> Path:
     """Return the platform-specific path to Claude Desktop's config file."""
     import platform
+
     system = platform.system()
 
     if system == "Darwin":  # macOS
@@ -63,7 +64,9 @@ def _get_claude_config_path() -> Path:
             / "claude_desktop_config.json"
         )
     elif system == "Windows":
-        appdata = Path(sys.platform == "win32" and __import__("os").environ.get("APPDATA", "") or "")
+        appdata = Path(
+            sys.platform == "win32" and __import__("os").environ.get("APPDATA", "") or ""
+        )
         return appdata / "Claude" / "claude_desktop_config.json"
     else:  # Linux / other
         return Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
@@ -93,11 +96,7 @@ def generate_claude_config_snippet() -> dict[str, Any]:
     Returns:
         dict that should be merged into ``claude_desktop_config.json``
     """
-    return {
-        "mcpServers": {
-            "projectmind": _build_mcp_entry()
-        }
-    }
+    return {"mcpServers": {"projectmind": _build_mcp_entry()}}
 
 
 def install_claude_desktop_config(dry_run: bool = False) -> None:
@@ -167,8 +166,7 @@ def _print_dry_run(config_path: Path, snippet_str: str) -> None:
         console.print(
             Panel(
                 f"[bold]Would update:[/bold] {config_path}\n\n"
-                f"[bold]Snippet to merge:[/bold]\n\n"
-                + snippet_str,
+                f"[bold]Snippet to merge:[/bold]\n\n" + snippet_str,
                 title="[cyan]Dry Run — Claude Desktop Config[/cyan]",
                 border_style="cyan",
             )
@@ -187,7 +185,7 @@ def _print_success(action: str, config_path: Path) -> None:
                 f"[bold]Next steps:[/bold]\n"
                 f"  1. Restart Claude Desktop\n"
                 f"  2. Open a project in Claude\n"
-                f"  3. Ask: [italic]\"What is this project about?\"[/italic]\n"
+                f'  3. Ask: [italic]"What is this project about?"[/italic]\n'
                 f"     Claude will use [bold]get_project_summary[/bold] automatically.",
                 title="[green]Claude Desktop Integration[/green]",
                 border_style="green",
@@ -239,7 +237,11 @@ class ClaudeDesktopAdapter(AgentAdapter):
             for w in warnings:
                 lines.append(
                     f"- **[{w['severity'].upper()}]** {w['message']}"
-                    + (f"\n  *Suggested action:* {w['suggested_action']}" if w.get("suggested_action") else "")
+                    + (
+                        f"\n  *Suggested action:* {w['suggested_action']}"
+                        if w.get("suggested_action")
+                        else ""
+                    )
                 )
 
         # Knowledge items
@@ -247,7 +249,9 @@ class ClaudeDesktopAdapter(AgentAdapter):
             lines.append("\n## Relevant Knowledge\n")
             for item in items:
                 status = item.get("status", "current")
-                status_marker = "🟡" if status == "stale" else ("🔴" if status == "contradicted" else "🟢")
+                status_marker = (
+                    "🟡" if status == "stale" else ("🔴" if status == "contradicted" else "🟢")
+                )
                 lines.append(f"### {status_marker} {item['title']} ({item['category']})\n")
                 lines.append(f"{item['content']}\n")
 

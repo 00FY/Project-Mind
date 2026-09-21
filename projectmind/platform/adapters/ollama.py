@@ -23,6 +23,7 @@ try:
     from rich.console import Console
     from rich.panel import Panel
     from rich.syntax import Syntax
+
     _RICH = True
     console = Console()
 except ImportError:
@@ -198,7 +199,9 @@ if __name__ == "__main__":
 '''
 
 
-def print_ollama_integration_guide(host: str = "http://localhost:11434", model: str = "llama3") -> None:
+def print_ollama_integration_guide(
+    host: str = "http://localhost:11434", model: str = "llama3"
+) -> None:
     """Print the Ollama integration guide to stdout."""
     code = _INTEGRATION_GUIDE_TEMPLATE.format(host=host, model=model)
     if _RICH:
@@ -279,7 +282,4 @@ class OllamaAdapter(AgentAdapter):
         """Format warnings as plain text."""
         if not warnings:
             return "No warnings for this task."
-        return "\n".join(
-            f"[{w['severity'].upper()}] {w['message']}"
-            for w in warnings
-        )
+        return "\n".join(f"[{w['severity'].upper()}] {w['message']}" for w in warnings)

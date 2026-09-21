@@ -19,7 +19,9 @@ class TestInit:
         # We test the command succeeds with exit code 0
         assert result.exit_code == 0
 
-    def test_init_fails_if_already_exists(self, tmp_path: Path, cli_runner: CliRunner, project_dir: Path):
+    def test_init_fails_if_already_exists(
+        self, tmp_path: Path, cli_runner: CliRunner, project_dir: Path
+    ):
         os.chdir(project_dir)
         result = cli_runner.invoke(cli, ["init"])
         assert result.exit_code == 1
@@ -152,7 +154,9 @@ class TestHelp:
         assert "doctor" in result.output
         assert "serve" in result.output
 
-    @pytest.mark.parametrize("command", ["init", "index", "status", "query", "context", "audit", "doctor"])
+    @pytest.mark.parametrize(
+        "command", ["init", "index", "status", "query", "context", "audit", "doctor"]
+    )
     def test_command_help(self, cli_runner: CliRunner, command: str):
         result = cli_runner.invoke(cli, [command, "--help"])
         assert result.exit_code == 0

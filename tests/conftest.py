@@ -22,11 +22,11 @@ def reset_global_state(tmp_path: Path):
     """
     reset_settings()
     reset_logging()
-    set_core(None)
+    set_core(None)  # type: ignore[arg-type]
     yield
     reset_settings()
     reset_logging()
-    set_core(None)
+    set_core(None)  # type: ignore[arg-type]
 
 
 @pytest.fixture()
@@ -63,7 +63,7 @@ def project_dir(tmp_path: Path) -> Path:
     config = tmp_path / "projectmind.toml"
     config.write_text(
         '[project]\nname = "test-project"\nroot = "."\nmemory_dir = ".projectmind"\n'
-        '[retrieval]\ntoken_budget = 4000\n'
+        "[retrieval]\ntoken_budget = 4000\n"
         '[mcp]\ntransport = "stdio"\nport = 3333\n'
         '[logging]\nlevel = "WARNING"\n'
     )
@@ -74,4 +74,5 @@ def project_dir(tmp_path: Path) -> Path:
 def cli_runner():
     """Click test runner."""
     from click.testing import CliRunner
+
     return CliRunner()

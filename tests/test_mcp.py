@@ -211,6 +211,7 @@ class TestGetProjectWarnings:
 # Helper to extract tool functions from FastMCP
 # ---------------------------------------------------------------------------
 
+
 def _get_tool(mcp_server, tool_name: str):
     """
     Extract the raw tool function from a FastMCP server for direct testing.
@@ -226,6 +227,7 @@ def _get_tool(mcp_server, tool_name: str):
     elif hasattr(mcp_server, "get_tool"):
         tool_or_coro = mcp_server.get_tool(tool_name)
         import asyncio
+
         if asyncio.iscoroutine(tool_or_coro):
             tool = asyncio.run(tool_or_coro)
         else:

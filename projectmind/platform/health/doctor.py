@@ -32,6 +32,7 @@ logger = get_logger("health.doctor")
 @dataclass
 class CheckResult:
     """Result of a single health check."""
+
     name: str
     status: HealthStatus
     message: str
@@ -60,6 +61,7 @@ class CheckResult:
 @dataclass
 class DoctorReport:
     """Aggregated result of all health checks."""
+
     checks: list[CheckResult] = field(default_factory=list)
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
@@ -165,6 +167,7 @@ def check_config_file() -> CheckResult:
     """Check that projectmind.toml is present and parseable."""
     try:
         from projectmind.platform.config.settings import _find_config_file
+
         config_path = _find_config_file()
 
         if config_path is None:
@@ -379,12 +382,21 @@ def check_mcp_configuration() -> CheckResult:
 def check_claude_desktop() -> CheckResult:
     """Check if Claude Desktop MCP configuration is installed."""
     import platform as plat
+
     try:
         system = plat.system()
         if system == "Darwin":
-            config_path = Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
+            config_path = (
+                Path.home()
+                / "Library"
+                / "Application Support"
+                / "Claude"
+                / "claude_desktop_config.json"
+            )
         elif system == "Windows":
-            appdata = Path(sys.platform == "win32" and __import__("os").environ.get("APPDATA", "") or "")
+            appdata = Path(
+                sys.platform == "win32" and __import__("os").environ.get("APPDATA", "") or ""
+            )
             config_path = appdata / "Claude" / "claude_desktop_config.json"
         else:
             config_path = Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
@@ -398,6 +410,7 @@ def check_claude_desktop() -> CheckResult:
             )
 
         import json
+
         with open(config_path) as f:
             config = json.load(f)
 

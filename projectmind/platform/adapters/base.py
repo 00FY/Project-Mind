@@ -99,9 +99,7 @@ def get_adapter(identifier: str) -> AgentAdapter:
     """
     if identifier not in _registry:
         available = ", ".join(_registry.keys()) or "none"
-        raise KeyError(
-            f"Unknown adapter '{identifier}'. Available adapters: {available}"
-        )
+        raise KeyError(f"Unknown adapter '{identifier}'. Available adapters: {available}")
     return _registry[identifier]()
 
 

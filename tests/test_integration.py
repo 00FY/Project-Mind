@@ -44,6 +44,7 @@ def full_setup(tmp_path: Path):
 
     # Load the generated config
     from projectmind.platform.config.settings import load_settings
+
     settings = load_settings(tmp_path / "projectmind.toml")
 
     # Register stub core
@@ -86,6 +87,7 @@ class TestFullWorkflow:
         Expected: ProjectMind returns a HIGH severity warning.
         """
         from tests.test_mcp import _get_tool
+
         mcp = full_setup["mcp"]
 
         tool_fn = _get_tool(mcp, "get_project_context")
@@ -96,8 +98,9 @@ class TestFullWorkflow:
         assert len(warnings) > 0, "Expected auth warning but got none"
         high_warnings = [w for w in warnings if w["severity"] in ("high", "critical")]
         assert len(high_warnings) > 0, f"Expected high severity warning, got: {warnings}"
-        assert any("SEC-07" in w.get("constraint_id", "") for w in warnings), \
+        assert any("SEC-07" in w.get("constraint_id", "") for w in warnings), (
             "Expected SEC-07 constraint reference"
+        )
 
     def test_agent_knowledge_search_scenario(self, full_setup):
         """
@@ -105,6 +108,7 @@ class TestFullWorkflow:
         Expected: Decision item returned with rationale.
         """
         from tests.test_mcp import _get_tool
+
         mcp = full_setup["mcp"]
 
         tool_fn = _get_tool(mcp, "search_project_knowledge")
@@ -120,6 +124,7 @@ class TestFullWorkflow:
         Expected: Context stays within budget.
         """
         from tests.test_mcp import _get_tool
+
         mcp = full_setup["mcp"]
 
         budget = 500
@@ -207,9 +212,7 @@ class TestAdapterIntegration:
         mcp = full_setup["mcp"]
         adapter = ClaudeDesktopAdapter()
 
-        warnings = _get_tool(mcp, "get_project_warnings")(
-            task="Remove authentication check"
-        )
+        warnings = _get_tool(mcp, "get_project_warnings")(task="Remove authentication check")
         formatted = adapter.format_warning(warnings)
 
         assert isinstance(formatted, str)
@@ -228,6 +231,7 @@ class TestConfigIntegration:
         monkeypatch.setenv("PROJECTMIND_TOKEN_BUDGET", "1234")
         monkeypatch.setenv("PROJECTMIND_LOG_LEVEL", "DEBUG")
         from projectmind.platform.config.settings import load_settings, reset_settings
+
         reset_settings()
         settings = load_settings()
         assert settings.retrieval.token_budget == 1234

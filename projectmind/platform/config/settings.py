@@ -16,21 +16,9 @@ Example usage::
 from __future__ import annotations
 
 import os
-import sys
+import tomllib  # type: ignore[assignment]
 from pathlib import Path
 from typing import Any
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    try:
-        import tomllib
-    except ImportError:
-        try:
-            import tomli as tomllib  # type: ignore[no-redef]
-        except ImportError:
-            tomllib = None  # type: ignore[assignment]
-
 
 # ---------------------------------------------------------------------------
 # Settings dataclasses (no external deps required)
@@ -141,15 +129,11 @@ class Settings:
 
         # Resolve database path relative to memory_dir if not set
         if self.database.path is None:
-            self.database.path = str(
-                self.project.memory_dir / "projectmind.db"
-            )
+            self.database.path = str(self.project.memory_dir / "projectmind.db")
 
         # Resolve log file path relative to memory_dir if not absolute
         if self.logging.file is None:
-            self.logging.file = str(
-                self.project.memory_dir / "logs" / "projectmind.log"
-            )
+            self.logging.file = str(self.project.memory_dir / "logs" / "projectmind.log")
 
     @property
     def memory_dir(self) -> Path:
@@ -283,7 +267,7 @@ def load_settings(config_path: Path | str | None = None) -> Settings:
     global _settings_cache
 
     if config_path is not None:
-        toml_path = Path(config_path)
+        toml_path: Path | None = Path(config_path)
     else:
         # Walk up from cwd looking for projectmind.toml
         toml_path = _find_config_file()

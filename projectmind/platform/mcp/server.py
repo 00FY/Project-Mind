@@ -114,9 +114,7 @@ def _serialise_context(ctx: ProjectContext) -> dict[str, Any]:
         "token_budget": ctx.token_budget,
         "retrieval_notes": ctx.retrieval_notes,
         "project_summary": (
-            _serialise_project_summary(ctx.project_summary)
-            if ctx.project_summary
-            else None
+            _serialise_project_summary(ctx.project_summary) if ctx.project_summary else None
         ),
         "knowledge_items": [_serialise_knowledge_item(k) for k in ctx.knowledge_items],
         "code_chunks": [_serialise_code_chunk(c) for c in ctx.code_chunks],
@@ -146,7 +144,7 @@ def create_server() -> fastmcp.FastMCP:
     Returns a ``FastMCP`` instance with all tools registered.
     Calling ``mcp.run()`` starts the server.
     """
-    settings = get_settings()
+    get_settings()
     mcp = fastmcp.FastMCP(
         name="ProjectMind",
         version="0.1.0",
@@ -384,11 +382,13 @@ def create_server() -> fastmcp.FastMCP:
                 status["index_last_updated"] = None
 
             # Quick health check summary
-            quick_checks = run_doctor(checks=[
-                check_database,
-                check_index_freshness,
-                check_memory_integrity,
-            ])
+            quick_checks = run_doctor(
+                checks=[
+                    check_database,
+                    check_index_freshness,
+                    check_memory_integrity,
+                ]
+            )
             status["health_checks"] = [
                 {"name": c.name, "status": c.status.value, "message": c.message}
                 for c in quick_checks.checks

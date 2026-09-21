@@ -33,10 +33,10 @@ import click
 
 # Lazy import so CLI starts fast even if optional deps are missing
 try:
-    from rich import print as rprint
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
+
     _RICH = True
     console = Console()
     err_console = Console(stderr=True)
@@ -68,18 +68,17 @@ def _print_err(msg: str, style: str = "red") -> None:
 def _ensure_init() -> None:
     """Exit with a friendly error if project is not initialised."""
     from projectmind.platform.config.settings import get_settings
+
     settings = get_settings()
     if not settings.project.memory_dir.exists():
-        _print_err(
-            "ProjectMind is not initialised in this directory.\n"
-            "Run:  projectmind init"
-        )
+        _print_err("ProjectMind is not initialised in this directory.\nRun:  projectmind init")
         sys.exit(1)
 
 
 def _bootstrap() -> None:
     """Set up logging and exception hook once for every command."""
     from projectmind.platform.logging.setup import install_exception_hook, setup_logging
+
     setup_logging()
     install_exception_hook()
 
@@ -107,12 +106,14 @@ def cli() -> None:
 
 @cli.command()
 @click.option(
-    "--name", "-n",
+    "--name",
+    "-n",
     default=None,
     help="Project name (defaults to current directory name).",
 )
 @click.option(
-    "--force", "-f",
+    "--force",
+    "-f",
     is_flag=True,
     default=False,
     help="Overwrite existing configuration.",
@@ -134,10 +135,7 @@ def init(name: str | None, force: bool) -> None:
 
     # Check existing
     if config_path.exists() and not force:
-        _print_err(
-            "projectmind.toml already exists.\n"
-            "Use --force to overwrite."
-        )
+        _print_err("projectmind.toml already exists.\nUse --force to overwrite.")
         sys.exit(1)
 
     # Create directories
@@ -179,12 +177,14 @@ def init(name: str | None, force: bool) -> None:
 
 @cli.command()
 @click.option(
-    "--path", "-p",
+    "--path",
+    "-p",
     default=None,
     help="Project root to index (defaults to configured project.root).",
 )
 @click.option(
-    "--verbose", "-v",
+    "--verbose",
+    "-v",
     is_flag=True,
     default=False,
     help="Show detailed indexing progress.",
@@ -202,7 +202,9 @@ def index(path: str | None, verbose: bool) -> None:
     settings = get_settings()
     project_root = str(Path(path).resolve() if path else settings.project.root)
 
-    _print(f"[bold]Indexing project:[/bold] {project_root}" if _RICH else f"Indexing: {project_root}")
+    _print(
+        f"[bold]Indexing project:[/bold] {project_root}" if _RICH else f"Indexing: {project_root}"
+    )
 
     try:
         core = get_core()
@@ -274,7 +276,9 @@ def status() -> None:
                         f"Last: {last.strftime('%Y-%m-%d %H:%M')}",
                     )
                 else:
-                    table.add_row("Code Index", "[yellow]⚠ not indexed[/yellow]", "Run 'projectmind index'")
+                    table.add_row(
+                        "Code Index", "[yellow]⚠ not indexed[/yellow]", "Run 'projectmind index'"
+                    )
             else:
                 table.add_row("Code Index", "[yellow]⚠ not registered[/yellow]", "")
 
@@ -301,7 +305,8 @@ def status() -> None:
 @click.argument("query_text")
 @click.option("--limit", "-l", default=5, help="Maximum results to return.", show_default=True)
 @click.option(
-    "--category", "-c",
+    "--category",
+    "-c",
     default=None,
     multiple=True,
     help="Filter by category (goal, decision, constraint, architecture, history).",
@@ -382,7 +387,8 @@ def query(query_text: str, limit: int, category: tuple[str, ...], json_output: b
 @cli.command()
 @click.argument("task_description")
 @click.option(
-    "--budget", "-b",
+    "--budget",
+    "-b",
     default=None,
     type=int,
     help="Token budget (overrides config).",
@@ -424,13 +430,14 @@ def context(task_description: str, budget: int | None, no_code: bool, json_outpu
                     for k in ctx.knowledge_items
                 ],
                 "code_chunks": [
-                    {"file": c.file_path, "lines": f"{c.start_line}-{c.end_line}", "content": c.content}
+                    {
+                        "file": c.file_path,
+                        "lines": f"{c.start_line}-{c.end_line}",
+                        "content": c.content,
+                    }
                     for c in ctx.code_chunks
                 ],
-                "warnings": [
-                    {"severity": w.severity, "message": w.message}
-                    for w in ctx.warnings
-                ],
+                "warnings": [{"severity": w.severity, "message": w.message} for w in ctx.warnings],
             }
             click.echo(json.dumps(output, indent=2, default=str))
             return
@@ -451,7 +458,12 @@ def context(task_description: str, budget: int | None, no_code: bool, json_outpu
             if ctx.warnings:
                 console.print("\n[bold red]⚠ Warnings[/bold red]")
                 for w in ctx.warnings:
-                    sev_colors = {"critical": "red", "high": "red", "medium": "yellow", "low": "cyan"}
+                    sev_colors = {
+                        "critical": "red",
+                        "high": "red",
+                        "medium": "yellow",
+                        "low": "cyan",
+                    }
                     color = sev_colors.get(w.severity, "white")
                     console.print(f"  [{color}][{w.severity.upper()}][/{color}] {w.message}")
 
@@ -464,8 +476,7 @@ def context(task_description: str, budget: int | None, no_code: bool, json_outpu
                 console.print("\n[bold]Relevant Code[/bold]")
                 for chunk in ctx.code_chunks:
                     console.print(
-                        f"  • [cyan]{chunk.file_path}[/cyan] "
-                        f"L{chunk.start_line}-{chunk.end_line}"
+                        f"  • [cyan]{chunk.file_path}[/cyan] L{chunk.start_line}-{chunk.end_line}"
                     )
         else:
             print(f"Task: {ctx.task}")
@@ -501,8 +512,12 @@ def audit(json_output: bool) -> None:
         if json_output:
             output = {
                 "stale_items": [{"id": i.id, "title": i.title} for i in report.stale_items],
-                "contradicted_items": [{"id": i.id, "title": i.title} for i in report.contradicted_items],
-                "missing_evidence": [{"id": i.id, "title": i.title} for i in report.missing_evidence],
+                "contradicted_items": [
+                    {"id": i.id, "title": i.title} for i in report.contradicted_items
+                ],
+                "missing_evidence": [
+                    {"id": i.id, "title": i.title} for i in report.missing_evidence
+                ],
                 "recommendations": report.recommendations,
                 "timestamp": report.timestamp.isoformat(),
             }
@@ -551,7 +566,11 @@ def doctor(json_output: bool) -> None:
     from projectmind.platform.health.doctor import run_doctor
 
     if not json_output:
-        _print("[bold]Running ProjectMind health checks...[/bold]\n" if _RICH else "Running health checks...")
+        _print(
+            "[bold]Running ProjectMind health checks...[/bold]\n"
+            if _RICH
+            else "Running health checks..."
+        )
 
     report = run_doctor()
 
@@ -661,7 +680,10 @@ def serve(transport: str | None, port: int | None) -> None:
         if selected_transport == "stdio":
             mcp_server.run()
         elif selected_transport in ("sse", "http"):
-            mcp_server.run(transport=selected_transport, host=settings.mcp.host, port=selected_port)
+            from typing import Literal, cast
+
+            t = cast(Literal["sse", "http"], selected_transport)
+            mcp_server.run(transport=t, host=settings.mcp.host, port=selected_port)
         else:
             _print_err(f"Unknown transport: {selected_transport}. Use stdio, sse, or http.")
             sys.exit(1)
@@ -714,6 +736,7 @@ def connect_ollama(host: str, model: str) -> None:
     from an Ollama-based agent.
     """
     from projectmind.platform.adapters.ollama import print_ollama_integration_guide
+
     print_ollama_integration_guide(host=host, model=model)
 
 

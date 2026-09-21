@@ -15,7 +15,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from projectmind.platform.adapters.claude_desktop import install_claude_desktop_config
+from projectmind.platform.adapters.claude_desktop import install_claude_desktop_config  # noqa: E402
 
 if __name__ == "__main__":
     try:

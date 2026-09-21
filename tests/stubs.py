@@ -176,7 +176,8 @@ class StubProjectMemory(ProjectMemory):
             items = [i for i in items if i.category in categories]
         # Simple stub: return items filtered by keyword
         import re
-        q = re.sub(r'[^\w\s]', '', query.lower())
+
+        q = re.sub(r"[^\w\s]", "", query.lower())
         words = [w for w in q.split() if len(w) > 2]
         scored = []
         for item in items:
@@ -272,7 +273,9 @@ class StubContextRetriever(ContextRetriever):
         task_lower = task.lower()
 
         # Authentication warning
-        if any(kw in task_lower for kw in ["auth", "authentication", "login", "public", "remove check"]):
+        if any(
+            kw in task_lower for kw in ["auth", "authentication", "login", "public", "remove check"]
+        ):
             warnings.append(
                 Warning(
                     severity="high",

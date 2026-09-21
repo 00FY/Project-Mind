@@ -71,9 +71,10 @@ class TestDoctorReport:
 
 class TestCheckProjectDirectory:
     def test_existing_directory(self, tmp_path: Path):
-        settings = load_settings.__wrapped__(None) if hasattr(load_settings, "__wrapped__") else None
+        (load_settings.__wrapped__(None) if hasattr(load_settings, "__wrapped__") else None)
         # Directly set settings for this test
         import projectmind.platform.config.settings as settings_mod
+
         proj = ProjectSettings(root=str(tmp_path))
         s = Settings(project=proj)
         settings_mod._settings_cache = s
@@ -83,6 +84,7 @@ class TestCheckProjectDirectory:
 
     def test_missing_directory(self, tmp_path: Path):
         import projectmind.platform.config.settings as settings_mod
+
         proj = ProjectSettings(root=str(tmp_path / "nonexistent"))
         s = Settings(project=proj)
         settings_mod._settings_cache = s
@@ -94,6 +96,7 @@ class TestCheckProjectDirectory:
 class TestCheckMemoryDirectory:
     def test_missing_memory_dir(self, tmp_path: Path):
         import projectmind.platform.config.settings as settings_mod
+
         proj = ProjectSettings(root=str(tmp_path), memory_dir=".projectmind")
         s = Settings(project=proj)
         settings_mod._settings_cache = s
@@ -104,6 +107,7 @@ class TestCheckMemoryDirectory:
 
     def test_existing_memory_dir(self, project_dir: Path):
         import projectmind.platform.config.settings as settings_mod
+
         proj = ProjectSettings(root=str(project_dir), memory_dir=".projectmind")
         s = Settings(project=proj)
         settings_mod._settings_cache = s
@@ -116,6 +120,7 @@ class TestCheckDatabase:
     def test_database_not_exists(self, tmp_path: Path):
         import projectmind.platform.config.settings as settings_mod
         from projectmind.platform.config.settings import DatabaseSettings
+
         proj = ProjectSettings(root=str(tmp_path))
         db = DatabaseSettings(path=str(tmp_path / "nonexistent.db"))
         s = Settings(project=proj, database=db)
@@ -182,6 +187,7 @@ class TestCheckIndexFreshness:
         from projectmind.core.interfaces import ProjectMindCore, set_core
 
         from tests.stubs import StubCodeIntelligence
+
         code_intel = StubCodeIntelligence(indexed=False)
         core = ProjectMindCore(code_intelligence=code_intel)
         set_core(core)

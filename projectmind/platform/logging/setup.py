@@ -115,8 +115,8 @@ class ModuleNotReadyError(ProjectMindError):
 
 
 try:
-    from rich.console import Console
     from rich.logging import RichHandler
+
     _RICH_AVAILABLE = True
 except ImportError:
     _RICH_AVAILABLE = False
@@ -160,6 +160,7 @@ def setup_logging(settings: LoggingSettings | None = None) -> None:
 
     if settings is None:
         from projectmind.platform.config.settings import get_settings
+
         settings = get_settings().logging
 
     root_logger = logging.getLogger("projectmind")
@@ -244,7 +245,11 @@ def install_exception_hook() -> None:
     """
     logger = logging.getLogger("projectmind.error")
 
-    def _hook(exc_type: type, exc_value: BaseException, exc_tb: object) -> None:  # noqa: ANN001
+    from types import TracebackType
+
+    def _hook(
+        exc_type: type[BaseException], exc_value: BaseException, exc_tb: TracebackType | None
+    ) -> None:  # noqa: ANN001
         # Always log full traceback to file
         logger.error(
             "Unhandled exception",
@@ -256,9 +261,7 @@ def install_exception_hook() -> None:
             _print_friendly_error(str(exc_value))
         elif exc_type in _ERROR_MAP:
             message, suggestion = _ERROR_MAP[exc_type]
-            _print_friendly_error(
-                f"{message}\n\nDetails: {exc_value}\n\nSuggestion: {suggestion}"
-            )
+            _print_friendly_error(f"{message}\n\nDetails: {exc_value}\n\nSuggestion: {suggestion}")
         else:
             # Fall back to normal traceback for unexpected errors
             sys.__excepthook__(exc_type, exc_value, exc_tb)
@@ -271,6 +274,7 @@ def _print_friendly_error(message: str) -> None:
     if _RICH_AVAILABLE:
         from rich.console import Console
         from rich.panel import Panel
+
         console = Console(stderr=True)
         console.print(
             Panel(

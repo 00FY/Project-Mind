@@ -25,6 +25,7 @@ from enum import StrEnum
 
 class ValidationStatus(StrEnum):
     """Validity status of a knowledge item."""
+
     CURRENT = "current"
     STALE = "stale"
     HISTORICAL = "historical"
@@ -40,6 +41,7 @@ class HealthStatus(StrEnum):
 @dataclass
 class CodeChunk:
     """A fragment of source code relevant to a query."""
+
     file_path: str
     start_line: int
     end_line: int
@@ -52,6 +54,7 @@ class CodeChunk:
 @dataclass
 class FileSummary:
     """High-level summary of a single source file."""
+
     path: str
     language: str
     functions: list[str] = field(default_factory=list)
@@ -64,6 +67,7 @@ class FileSummary:
 @dataclass
 class GitChange:
     """A git change affecting one file."""
+
     file_path: str
     change_type: str  # "added" | "modified" | "deleted" | "renamed"
     additions: int = 0
@@ -77,6 +81,7 @@ class GitChange:
 @dataclass
 class IndexResult:
     """Result of indexing a project directory."""
+
     files_indexed: int
     files_skipped: int
     duration_seconds: float
@@ -87,6 +92,7 @@ class IndexResult:
 @dataclass
 class KnowledgeItem:
     """A single item retrieved from project memory."""
+
     id: str
     category: str  # "goal" | "architecture" | "decision" | "constraint" | "history"
     title: str
@@ -101,6 +107,7 @@ class KnowledgeItem:
 @dataclass
 class ProjectSummary:
     """High-level summary of the project from memory."""
+
     name: str
     description: str
     goals: list[str] = field(default_factory=list)
@@ -113,6 +120,7 @@ class ProjectSummary:
 @dataclass
 class MemoryStatus:
     """Current status of the project memory engine."""
+
     total_items: int
     current_items: int
     stale_items: int
@@ -126,6 +134,7 @@ class MemoryStatus:
 @dataclass
 class AuditReport:
     """Result of a memory audit."""
+
     stale_items: list[KnowledgeItem] = field(default_factory=list)
     contradicted_items: list[KnowledgeItem] = field(default_factory=list)
     missing_evidence: list[KnowledgeItem] = field(default_factory=list)
@@ -136,6 +145,7 @@ class AuditReport:
 @dataclass
 class Warning:
     """A warning about a task that may violate a constraint or decision."""
+
     severity: str  # "low" | "medium" | "high" | "critical"
     category: str  # "constraint" | "decision" | "architecture" | "security"
     message: str
@@ -150,6 +160,7 @@ class ProjectContext:
     The minimum-sufficient context for an AI agent to work on a task.
     Produced by Member 3; consumed by the MCP server.
     """
+
     task: str
     project_summary: ProjectSummary | None = None
     knowledge_items: list[KnowledgeItem] = field(default_factory=list)
@@ -371,8 +382,7 @@ class ProjectMindCore:
     def project_memory(self) -> ProjectMemory:
         if self._project_memory is None:
             raise RuntimeError(
-                "ProjectMemory (Member 2) is not registered. "
-                "Run 'projectmind doctor' to diagnose."
+                "ProjectMemory (Member 2) is not registered. Run 'projectmind doctor' to diagnose."
             )
         return self._project_memory
 
@@ -386,11 +396,13 @@ class ProjectMindCore:
         return self._context_retriever
 
     def is_fully_configured(self) -> bool:
-        return all([
-            self._code_intelligence is not None,
-            self._project_memory is not None,
-            self._context_retriever is not None,
-        ])
+        return all(
+            [
+                self._code_intelligence is not None,
+                self._project_memory is not None,
+                self._context_retriever is not None,
+            ]
+        )
 
     def available_modules(self) -> dict[str, bool]:
         return {
