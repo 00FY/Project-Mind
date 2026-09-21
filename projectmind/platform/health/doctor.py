@@ -11,11 +11,10 @@ Each check is a small function that returns a ``CheckResult``.
 from __future__ import annotations
 
 import importlib
-import shutil
 import sqlite3
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from projectmind.core.interfaces import HealthStatus, get_core
@@ -62,7 +61,7 @@ class CheckResult:
 class DoctorReport:
     """Aggregated result of all health checks."""
     checks: list[CheckResult] = field(default_factory=list)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def passed(self) -> list[CheckResult]:
@@ -177,13 +176,7 @@ def check_config_file() -> CheckResult:
             )
 
         # Try to parse it
-        if sys.version_info >= (3, 11):
-            import tomllib
-        else:
-            try:
-                import tomllib
-            except ImportError:
-                import tomli as tomllib  # type: ignore[no-redef]
+        import tomllib
 
         with open(config_path, "rb") as f:
             tomllib.load(f)

@@ -8,8 +8,7 @@ assert exact outputs without running real code analysis.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 from projectmind.core.interfaces import (
     AuditReport,
@@ -28,7 +27,6 @@ from projectmind.core.interfaces import (
     Warning,
 )
 
-
 # ---------------------------------------------------------------------------
 # Member 1 stub
 # ---------------------------------------------------------------------------
@@ -39,11 +37,11 @@ class StubCodeIntelligence(CodeIntelligence):
 
     def __init__(self, indexed: bool = True):
         self._indexed = indexed
-        self._last_indexed = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc) if indexed else None
+        self._last_indexed = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC) if indexed else None
 
     def index_project(self, project_root: str) -> IndexResult:
         self._indexed = True
-        self._last_indexed = datetime.now(timezone.utc)
+        self._last_indexed = datetime.now(UTC)
         return IndexResult(
             files_indexed=42,
             files_skipped=3,
@@ -85,7 +83,7 @@ class StubCodeIntelligence(CodeIntelligence):
                 diff_summary="Added JWT validation",
                 commit_hash="abc1234",
                 commit_message="feat: add JWT validation",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
         ]
 
@@ -177,15 +175,22 @@ class StubProjectMemory(ProjectMemory):
         if categories:
             items = [i for i in items if i.category in categories]
         # Simple stub: return items filtered by keyword
-        q = query.lower()
+        import re
+        q = re.sub(r'[^\w\s]', '', query.lower())
+        words = [w for w in q.split() if len(w) > 2]
         scored = []
         for item in items:
             score = 0.0
-            if q in item.title.lower():
-                score += 0.5
-            if q in item.content.lower():
-                score += 0.3
-            if score > 0 or not q:
+            title_lower = item.title.lower()
+            content_lower = item.content.lower()
+            for w in words:
+                if w in title_lower:
+                    score += 0.5
+                if w in content_lower:
+                    score += 0.3
+            if not words:
+                score = 0.5
+            if score > 0:
                 item.relevance_score = score or item.relevance_score
                 scored.append(item)
         scored.sort(key=lambda x: x.relevance_score, reverse=True)
@@ -210,7 +215,7 @@ class StubProjectMemory(ProjectMemory):
             current_items=current,
             stale_items=stale,
             contradicted_items=0,
-            last_audit=datetime(2025, 1, 1, tzinfo=timezone.utc),
+            last_audit=datetime(2025, 1, 1, tzinfo=UTC),
             db_path=":memory:",
             is_healthy=True,
         )

@@ -12,7 +12,6 @@ local LLM.
 
 from __future__ import annotations
 
-import sys
 from typing import Any
 
 from projectmind.platform.adapters.base import AgentAdapter, register_adapter
@@ -178,7 +177,7 @@ def build_system_prompt(context: dict) -> str:
     if warnings := context.get("warnings", []):
         lines.append("\\n⚠ ACTIVE WARNINGS:")
         for w in warnings:
-            lines.append(f"  [{w['severity'].upper()}] {{w['message']}}")
+            lines.append(f"  [{{w['severity'].upper()}}] {{w['message']}}")
 
     if items := context.get("knowledge_items", []):
         lines.append("\\n📖 RELEVANT KNOWLEDGE:")

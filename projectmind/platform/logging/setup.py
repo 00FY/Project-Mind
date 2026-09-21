@@ -15,7 +15,6 @@ import json
 import logging
 import logging.handlers
 import sys
-import traceback
 from pathlib import Path
 from typing import TYPE_CHECKING
 

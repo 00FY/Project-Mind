@@ -26,7 +26,6 @@ Usage::
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -34,10 +33,10 @@ import click
 
 # Lazy import so CLI starts fast even if optional deps are missing
 try:
+    from rich import print as rprint
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
-    from rich import print as rprint
     _RICH = True
     console = Console()
     err_console = Console(stderr=True)
@@ -80,7 +79,7 @@ def _ensure_init() -> None:
 
 def _bootstrap() -> None:
     """Set up logging and exception hook once for every command."""
-    from projectmind.platform.logging.setup import setup_logging, install_exception_hook
+    from projectmind.platform.logging.setup import install_exception_hook, setup_logging
     setup_logging()
     install_exception_hook()
 
@@ -136,8 +135,8 @@ def init(name: str | None, force: bool) -> None:
     # Check existing
     if config_path.exists() and not force:
         _print_err(
-            f"projectmind.toml already exists.\n"
-            f"Use --force to overwrite."
+            "projectmind.toml already exists.\n"
+            "Use --force to overwrite."
         )
         sys.exit(1)
 
@@ -548,10 +547,11 @@ def doctor(json_output: bool) -> None:
     Checks project directory, config, database, memory integrity,
     index freshness, MCP configuration, and Claude Desktop integration.
     """
-    from projectmind.platform.health.doctor import run_doctor, DoctorReport
     from projectmind.core.interfaces import HealthStatus
+    from projectmind.platform.health.doctor import run_doctor
 
-    _print("[bold]Running ProjectMind health checks...[/bold]\n" if _RICH else "Running health checks...")
+    if not json_output:
+        _print("[bold]Running ProjectMind health checks...[/bold]\n" if _RICH else "Running health checks...")
 
     report = run_doctor()
 

@@ -16,16 +16,14 @@ from __future__ import annotations
 import abc
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-from typing import Any
-
+from enum import StrEnum
 
 # ---------------------------------------------------------------------------
 # Shared data models
 # ---------------------------------------------------------------------------
 
 
-class ValidationStatus(str, Enum):
+class ValidationStatus(StrEnum):
     """Validity status of a knowledge item."""
     CURRENT = "current"
     STALE = "stale"
@@ -33,7 +31,7 @@ class ValidationStatus(str, Enum):
     CONTRADICTED = "contradicted"
 
 
-class HealthStatus(str, Enum):
+class HealthStatus(StrEnum):
     PASS = "pass"
     WARN = "warn"
     FAIL = "fail"

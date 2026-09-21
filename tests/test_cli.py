@@ -8,12 +8,12 @@ from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
-
 from projectmind.platform.cli.main import cli
 
 
 class TestInit:
     def test_init_creates_files(self, tmp_path: Path, cli_runner: CliRunner):
+        os.chdir(tmp_path)
         result = cli_runner.invoke(cli, ["init", "--name", "test-project"], catch_exceptions=False)
         # CLI is invoked from process cwd — use mix_stderr=False for predictable output
         # We test the command succeeds with exit code 0

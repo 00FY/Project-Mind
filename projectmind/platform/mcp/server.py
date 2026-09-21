@@ -350,10 +350,10 @@ def create_server() -> fastmcp.FastMCP:
         logger.info("MCP tool called: get_project_status")
         try:
             from projectmind.platform.health.doctor import (
-                run_doctor,
                 check_database,
                 check_index_freshness,
                 check_memory_integrity,
+                run_doctor,
             )
 
             core = get_core()

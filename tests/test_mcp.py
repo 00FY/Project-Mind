@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import pytest
-
-from projectmind.core.interfaces import ProjectMindCore, set_core
 from projectmind.platform.mcp.server import create_server
-from tests.stubs import StubCodeIntelligence, StubContextRetriever, StubProjectMemory
 
 
 @pytest.fixture()
@@ -220,14 +217,19 @@ def _get_tool(mcp_server, tool_name: str):
     FastMCP stores tools in _tools dict.
     """
     import asyncio
-    
+
     tool_fn = None
     if hasattr(mcp_server, "_tools"):
         tool = mcp_server._tools.get(tool_name)
         if tool:
             tool_fn = tool.fn if hasattr(tool, "fn") else tool
     elif hasattr(mcp_server, "get_tool"):
-        tool = mcp_server.get_tool(tool_name)
+        tool_or_coro = mcp_server.get_tool(tool_name)
+        import asyncio
+        if asyncio.iscoroutine(tool_or_coro):
+            tool = asyncio.run(tool_or_coro)
+        else:
+            tool = tool_or_coro
         if tool:
             tool_fn = tool.fn if hasattr(tool, "fn") else tool
     else:
@@ -236,14 +238,14 @@ def _get_tool(mcp_server, tool_name: str):
             if callable(obj) and getattr(obj, "__name__", "") == tool_name:
                 tool_fn = obj
                 break
-                
+
     if not tool_fn:
         raise AttributeError(f"Tool '{tool_name}' not found in MCP server")
-        
+
     def sync_wrapper(*args, **kwargs):
         res = tool_fn(*args, **kwargs)
         if asyncio.iscoroutine(res):
             return asyncio.run(res)
         return res
-        
+
     return sync_wrapper

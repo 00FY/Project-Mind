@@ -3,27 +3,21 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
 from pathlib import Path
 
-import pytest
-
 from projectmind.core.interfaces import HealthStatus
+from projectmind.platform.config.settings import ProjectSettings, Settings, load_settings
 from projectmind.platform.health.doctor import (
-    DoctorReport,
     CheckResult,
-    check_claude_desktop,
-    check_config_file,
+    DoctorReport,
     check_database,
     check_index_freshness,
     check_memory_directory,
     check_memory_integrity,
-    check_mcp_configuration,
     check_project_directory,
     check_required_packages,
     run_doctor,
 )
-from projectmind.platform.config.settings import load_settings, Settings, ProjectSettings
 
 
 class TestCheckResult:
@@ -79,7 +73,6 @@ class TestCheckProjectDirectory:
     def test_existing_directory(self, tmp_path: Path):
         settings = load_settings.__wrapped__(None) if hasattr(load_settings, "__wrapped__") else None
         # Directly set settings for this test
-        from projectmind.platform.config.settings import _settings_cache
         import projectmind.platform.config.settings as settings_mod
         proj = ProjectSettings(root=str(tmp_path))
         s = Settings(project=proj)
@@ -186,7 +179,8 @@ class TestCheckIndexFreshness:
         assert result.status == HealthStatus.WARN
 
     def test_with_not_indexed(self):
-        from projectmind.core.interfaces import set_core, ProjectMindCore
+        from projectmind.core.interfaces import ProjectMindCore, set_core
+
         from tests.stubs import StubCodeIntelligence
         code_intel = StubCodeIntelligence(indexed=False)
         core = ProjectMindCore(code_intelligence=code_intel)
@@ -213,7 +207,6 @@ class TestRunDoctor:
 
     def test_checks_never_crash(self, stub_core):
         """Even if a check raises an exception internally, run_doctor should not crash."""
-        from projectmind.platform.health import doctor as doctor_mod
 
         def crashing_check():
             raise RuntimeError("Simulated crash")

@@ -19,10 +19,10 @@ from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
-
 from projectmind.core.interfaces import ProjectMindCore, set_core
 from projectmind.platform.cli.main import cli
 from projectmind.platform.mcp.server import create_server
+
 from tests.stubs import StubCodeIntelligence, StubContextRetriever, StubProjectMemory
 
 
@@ -161,6 +161,7 @@ class TestFullWorkflow:
 class TestAdapterIntegration:
     def test_claude_adapter_formats_context(self, full_setup):
         from projectmind.platform.adapters.claude_desktop import ClaudeDesktopAdapter
+
         from tests.test_mcp import _get_tool
 
         mcp = full_setup["mcp"]
@@ -175,6 +176,7 @@ class TestAdapterIntegration:
 
     def test_ollama_adapter_formats_context(self, full_setup):
         from projectmind.platform.adapters.ollama import OllamaAdapter
+
         from tests.test_mcp import _get_tool
 
         mcp = full_setup["mcp"]
@@ -187,10 +189,8 @@ class TestAdapterIntegration:
         assert "PROJECT CONTEXT" in formatted
 
     def test_adapter_registry(self):
-        from projectmind.platform.adapters.base import list_adapters, get_adapter
         # Import adapters to trigger @register_adapter decorators
-        import projectmind.platform.adapters.claude_desktop
-        import projectmind.platform.adapters.ollama
+        from projectmind.platform.adapters.base import get_adapter, list_adapters
 
         available = list_adapters()
         assert "claude" in available
@@ -201,6 +201,7 @@ class TestAdapterIntegration:
 
     def test_adapter_warning_format(self, full_setup):
         from projectmind.platform.adapters.claude_desktop import ClaudeDesktopAdapter
+
         from tests.test_mcp import _get_tool
 
         mcp = full_setup["mcp"]

@@ -228,7 +228,7 @@ class ClaudeDesktopAdapter(AgentAdapter):
     def format_context(self, context: dict[str, Any]) -> str:
         """Format a project context as a Markdown string."""
         lines: list[str] = [
-            f"# ProjectMind Context for Task\n",
+            "# ProjectMind Context for Task\n",
             f"**Task:** {context.get('task', '')}\n",
             f"**Tokens:** {context.get('token_count', 0)} / {context.get('token_budget', 8000)}\n",
         ]
