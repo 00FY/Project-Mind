@@ -30,3 +30,11 @@ class CodeEntity(BaseModel):
     line_start: int = Field(ge=1)
     line_end: int = Field(ge=1)
     language: str = Field(default="python", min_length=1)
+
+
+class ScannedFile(BaseModel):
+    """A source file discovered by the repository scanner."""
+
+    path: str = Field(min_length=1)
+    language: str = Field(min_length=1)
+    size_bytes: int = Field(ge=0)
