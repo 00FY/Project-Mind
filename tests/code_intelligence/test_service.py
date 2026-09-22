@@ -1,86 +1,181 @@
-"""Tests for the Member 1 Code Intelligence service."""
+"""Public Code Intelligence service for ProjectMind."""
 
+from datetime import UTC, datetime
 from pathlib import Path
 
-from projectmind.code_intelligence.service import CodeIntelligenceService
+from projectmind.code_intelligence.indexer import CodeIndexer
+from projectmind.code_intelligence.models import (
+    CodeEntity,
+    CodeRelationship,
+)
+from projectmind.code_intelligence.scanner import RepositoryScanner
+from projectmind.core.interfaces import (
+    CodeChunk,
+    CodeIntelligence,
+    FileSummary,
+    GitChange,
+    IndexResult,
+)
 
 
-def create_file(path: Path, content: str) -> None:
-    """Create a test file."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+class CodeIntelligenceService(CodeIntelligence):
+    """Concrete Member 1 implementation of the shared CodeIntelligence API."""
 
+    def __init__(self, project_root: str | Path) -> None:
+        self.project_root = Path(project_root).resolve()
+        self.indexer = CodeIndexer(self.project_root)
+        self.scanner = RepositoryScanner(self.project_root)
+        self._entities: list[CodeEntity] = []
+        self._last_indexed: datetime | None = None
 
-def test_service_indexes_project(tmp_path: Path) -> None:
-    """Service should index a project through the shared interface."""
-    create_file(
-        tmp_path / "src" / "auth.py",
-        """class AuthService:
-    def login(self):
-        return True
-""",
-    )
+    def index_project(self, project_root: str) -> IndexResult:
+        """Index the project and extract code entities and relationships."""
+        start = datetime.now(UTC)
 
-    service = CodeIntelligenceService(tmp_path)
-    result = service.index_project(str(tmp_path))
+        root = Path(project_root).resolve()
 
-    assert result.files_indexed == 1
-    assert result.errors == []
-    assert service.get_last_indexed() is not None
+        if root != self.project_root:
+            self.project_root = root
+            self.indexer = CodeIndexer(root)
+            self.scanner = RepositoryScanner(root)
 
+        scanned_files = self.scanner.scan()
 
-def test_service_returns_file_summary(tmp_path: Path) -> None:
-    """Service should provide a summary after indexing."""
-    create_file(
-        tmp_path / "src" / "auth.py",
-        """import sqlite3
+        self._entities = self.indexer.index()
 
-class AuthService:
-    def login(self):
-        return True
+        self._last_indexed = datetime.now(UTC)
 
-def validate_token(token):
-    return True
-""",
-    )
+        duration = (
+            self._last_indexed - start
+        ).total_seconds()
 
-    service = CodeIntelligenceService(tmp_path)
-    service.index_project(str(tmp_path))
+        return IndexResult(
+            files_indexed=len(scanned_files),
+            files_skipped=0,
+            duration_seconds=duration,
+        )
 
-    summary = service.get_file_summary("src/auth.py")
+    def get_file_summary(self, file_path: str) -> FileSummary:
+        """Return a summary of a source file."""
+        path = self.project_root / file_path
 
-    assert summary.path == "src/auth.py"
-    assert summary.language == "python"
-    assert "AuthService" in summary.classes
-    assert "validate_token" in summary.functions
-    assert "import sqlite3" in summary.imports
+        entities = [
+            entity
+            for entity in self._entities
+            if entity.file == file_path
+        ]
 
+        functions = [
+            entity.name
+            for entity in entities
+            if entity.type.value == "function"
+        ]
 
-def test_service_finds_related_code(tmp_path: Path) -> None:
-    """Service should return basic code matches."""
-    create_file(
-        tmp_path / "src" / "auth.py",
-        """class AuthService:
-    def login(self):
-        return True
-""",
-    )
+        classes = [
+            entity.name
+            for entity in entities
+            if entity.type.value == "class"
+        ]
 
-    service = CodeIntelligenceService(tmp_path)
-    service.index_project(str(tmp_path))
+        imports = [
+            entity.name
+            for entity in entities
+            if entity.type.value == "import"
+        ]
 
-    results = service.get_related_code("AuthService")
+        language = (
+            "python"
+            if path.suffix.lower() == ".py"
+            else "unknown"
+        )
 
-    assert len(results) == 1
-    assert results[0].file_path == "src/auth.py"
-    assert results[0].start_line == 1
-    assert "class AuthService" in results[0].content
+        return FileSummary(
+            path=file_path,
+            language=language,
+            functions=functions,
+            classes=classes,
+            imports=imports,
+            last_modified=datetime.fromtimestamp(
+                path.stat().st_mtime,
+                tz=UTC,
+            ),
+        )
 
+    def get_related_code(
+        self,
+        query: str,
+        limit: int = 5,
+    ) -> list[CodeChunk]:
+        """Return code chunks whose entity names match the query."""
+        query_lower = query.lower()
 
-def test_service_git_changes_are_not_implemented_yet(
-    tmp_path: Path,
-) -> None:
-    """Git changes remain empty until the Git tracker is implemented."""
-    service = CodeIntelligenceService(tmp_path)
+        matches = [
+            entity
+            for entity in self._entities
+            if query_lower in entity.name.lower()
+        ][:limit]
 
-    assert service.get_git_changes() == []
+        results: list[CodeChunk] = []
+
+        for entity in matches:
+            path = self.project_root / entity.file
+
+            try:
+                lines = path.read_text(
+                    encoding="utf-8",
+                ).splitlines()
+            except (OSError, UnicodeDecodeError):
+                continue
+
+            start = entity.line_start
+            end = min(
+                entity.line_end,
+                len(lines),
+            )
+
+            content = "\n".join(
+                lines[start - 1:end],
+            )
+
+            results.append(
+                CodeChunk(
+                    file_path=entity.file,
+                    start_line=start,
+                    end_line=end,
+                    content=content,
+                    language=entity.language,
+                    relevance_score=1.0,
+                    summary=(
+                        f"{entity.type.value}: "
+                        f"{entity.name}"
+                    ),
+                )
+            )
+
+        return results
+
+    def get_git_changes(
+        self,
+        since_commit: str = "HEAD~1",
+    ) -> list[GitChange]:
+        """
+        Return recent Git changes.
+
+        Git change tracking will be implemented in the
+        next Member 1 stage.
+        """
+        return []
+
+    def get_last_indexed(self) -> datetime | None:
+        """Return the timestamp of the most recent successful index."""
+        return self._last_indexed
+
+    @property
+    def entities(self) -> list[CodeEntity]:
+        """Return entities discovered during the latest index."""
+        return self._entities
+
+    @property
+    def relationships(self) -> list[CodeRelationship]:
+        """Return relationships discovered during the latest index."""
+        return self.indexer.relationships

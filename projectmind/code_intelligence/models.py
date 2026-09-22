@@ -38,3 +38,20 @@ class ScannedFile(BaseModel):
     path: str = Field(min_length=1)
     language: str = Field(min_length=1)
     size_bytes: int = Field(ge=0)
+
+
+class RelationshipType(StrEnum):
+    """Types of relationships between code entities."""
+
+    IMPORTS = "imports"
+    CONTAINS = "contains"
+    INHERITS = "inherits"
+    CALLS = "calls"
+
+
+class CodeRelationship(BaseModel):
+    """A relationship between two code entities."""
+
+    source_entity_id: str = Field(min_length=1)
+    target_entity_id: str = Field(min_length=1)
+    relationship_type: RelationshipType

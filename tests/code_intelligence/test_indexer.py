@@ -55,3 +55,37 @@ def test_indexer_ignores_unsupported_languages(
     entities = indexer.index()
 
     assert entities == []
+
+
+def test_indexer_extracts_relationships(tmp_path: Path) -> None:
+    source = """class AuthService:
+    def login(self):
+        return True
+"""
+
+    file_path = tmp_path / "auth.py"
+    file_path.write_text(source, encoding="utf-8")
+
+    indexer = CodeIndexer(tmp_path)
+
+    entities = indexer.index()
+
+    assert len(entities) == 2
+    assert len(indexer.relationships) == 1
+
+    relationship = indexer.relationships[0]
+
+    assert relationship.relationship_type.value == "contains"
+
+    class_entity = next(
+        entity for entity in entities
+        if entity.type.value == "class"
+    )
+
+    method_entity = next(
+        entity for entity in entities
+        if entity.type.value == "method"
+    )
+
+    assert relationship.source_entity_id == class_entity.entity_id
+    assert relationship.target_entity_id == method_entity.entity_id

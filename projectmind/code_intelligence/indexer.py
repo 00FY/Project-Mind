@@ -3,7 +3,12 @@
 from pathlib import Path
 
 from projectmind.code_intelligence.entities import PythonEntityExtractor
-from projectmind.code_intelligence.models import CodeEntity, ScannedFile
+from projectmind.code_intelligence.models import (
+    CodeEntity,
+    CodeRelationship,
+    ScannedFile,
+)
+from projectmind.code_intelligence.relationships import RelationshipExtractor
 from projectmind.code_intelligence.scanner import RepositoryScanner
 
 
@@ -14,6 +19,8 @@ class CodeIndexer:
         self.project_root = Path(project_root).resolve()
         self.scanner = RepositoryScanner(self.project_root)
         self.extractor = PythonEntityExtractor()
+        self.relationship_extractor = RelationshipExtractor()
+        self.relationships: list[CodeRelationship] = []
 
     def index(self) -> list[CodeEntity]:
         """
@@ -31,12 +38,16 @@ class CodeIndexer:
             file_entities = self._extract_file(scanned_file)
             entities.extend(file_entities)
 
+        self.relationships = self.relationship_extractor.extract(entities)
+
         return entities
 
-    def _extract_file(self, scanned_file: ScannedFile) -> list[CodeEntity]:
+    def _extract_file(
+        self,
+        scanned_file: ScannedFile,
+    ) -> list[CodeEntity]:
         """Read one source file and extract its entities."""
         file_path = self.project_root / scanned_file.path
-
         source_code = file_path.read_text(encoding="utf-8")
 
         return self.extractor.extract(
