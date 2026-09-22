@@ -6,3 +6,24 @@ __pycache__/
 .projectmind/
 build/
 dist/
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Testing
+.pytest_cache/
+
+# Type checking
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Build / packaging
+*.egg-info/
+dist/
+build/
