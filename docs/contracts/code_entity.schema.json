@@ -1,0 +1,64 @@
+{
+  "$defs": {
+    "EntityType": {
+      "description": "Types of code entities recognized by ProjectMind.",
+      "enum": [
+        "file",
+        "module",
+        "class",
+        "function",
+        "method",
+        "import"
+      ],
+      "title": "EntityType",
+      "type": "string"
+    }
+  },
+  "description": "A structured representation of an entity found in the codebase.\n\nPaths are stored relative to the repository root.",
+  "properties": {
+    "entity_id": {
+      "minLength": 1,
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "type": {
+      "$ref": "#/$defs/EntityType"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "file": {
+      "minLength": 1,
+      "title": "File",
+      "type": "string"
+    },
+    "line_start": {
+      "minimum": 1,
+      "title": "Line Start",
+      "type": "integer"
+    },
+    "line_end": {
+      "minimum": 1,
+      "title": "Line End",
+      "type": "integer"
+    },
+    "language": {
+      "default": "python",
+      "minLength": 1,
+      "title": "Language",
+      "type": "string"
+    }
+  },
+  "required": [
+    "entity_id",
+    "type",
+    "name",
+    "file",
+    "line_start",
+    "line_end"
+  ],
+  "title": "CodeEntity",
+  "type": "object"
+}
