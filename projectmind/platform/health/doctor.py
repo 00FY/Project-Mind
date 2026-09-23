@@ -42,9 +42,9 @@ class CheckResult:
     @property
     def icon(self) -> str:
         icons = {
-            HealthStatus.PASS: "✓",
-            HealthStatus.WARN: "⚠",
-            HealthStatus.FAIL: "✗",
+            HealthStatus.PASS: "[OK]",
+            HealthStatus.WARN: "[WARN]",
+            HealthStatus.FAIL: "[FAIL]",
         }
         return icons.get(self.status, "?")
 

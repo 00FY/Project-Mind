@@ -224,7 +224,7 @@ def index(path: str | None, verbose: bool) -> None:
                 for err in result.errors:
                     console.print(f"  [red]✗[/red] {err}")
         else:
-            print(f"✓ Indexed {result.files_indexed} files in {result.duration_seconds:.2f}s")
+            print(f"[OK] Indexed {result.files_indexed} files in {result.duration_seconds:.2f}s")
             if result.errors:
                 print(f"  ⚠ {len(result.errors)} errors")
 

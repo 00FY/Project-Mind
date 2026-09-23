@@ -61,7 +61,7 @@ class BM25Retriever:
         for (item_type, item), score in ranked[:top_k]:
             if score <= 0:
                 continue
-            item_id = getattr(item, "id", getattr(item, "entity_id", str(hash(item))))
+            item_id = getattr(item, "id", None) or getattr(item, "entity_id", None) or str(id(item))
             results.append(
                 RetrievalResult(
                     item_id=item_id,
