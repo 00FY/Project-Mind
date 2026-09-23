@@ -99,16 +99,13 @@ class MemoryLifecycleEngine:
         reason = reason.strip()
 
         if not reason:
-            raise LifecycleTransitionError(
-                "A lifecycle transition requires a non-empty reason."
-            )
+            raise LifecycleTransitionError("A lifecycle transition requires a non-empty reason.")
 
         current_status = memory.status
 
         if not self.can_transition(current_status, new_status):
             raise LifecycleTransitionError(
-                f"Invalid lifecycle transition: "
-                f"{current_status.value} -> {new_status.value}"
+                f"Invalid lifecycle transition: {current_status.value} -> {new_status.value}"
             )
 
         changed_at = utc_now()

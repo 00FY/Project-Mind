@@ -23,10 +23,7 @@ class MemoryTransitionService:
         lifecycle_engine: MemoryLifecycleEngine | None = None,
     ) -> None:
         self.repository = repository
-        self.lifecycle_engine = (
-            lifecycle_engine
-            or MemoryLifecycleEngine()
-        )
+        self.lifecycle_engine = lifecycle_engine or MemoryLifecycleEngine()
 
     def transition(
         self,
@@ -38,16 +35,12 @@ class MemoryTransitionService:
         Apply and atomically persist a lifecycle transition.
         """
 
-        memory = self.repository.get_memory(
-            memory_id
-        )
+        memory = self.repository.get_memory(memory_id)
 
-        updated_memory, transition = (
-            self.lifecycle_engine.transition(
-                memory,
-                new_status,
-                reason,
-            )
+        updated_memory, transition = self.lifecycle_engine.transition(
+            memory,
+            new_status,
+            reason,
         )
 
         if new_status == MemoryStatus.HISTORICAL:

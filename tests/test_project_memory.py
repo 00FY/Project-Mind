@@ -195,9 +195,7 @@ def test_audit_memory_reports_stale_and_contradicted_items(tmp_path):
     report = project_memory.audit_memory()
 
     assert [item.id for item in report.stale_items] == ["stale-001"]
-    assert [item.id for item in report.contradicted_items] == [
-        "contradicted-001"
-    ]
+    assert [item.id for item in report.contradicted_items] == ["contradicted-001"]
 
 
 def test_get_status_returns_memory_statistics(tmp_path):

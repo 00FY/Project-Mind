@@ -125,17 +125,13 @@ class Memory(BaseModel):
     # EVIDENCE
     # ============================================================
 
-    evidence: list[str] = Field(
-        default_factory=list
-    )
+    evidence: list[str] = Field(default_factory=list)
 
     # ============================================================
     # RELATED ENTITIES
     # ============================================================
 
-    related_entities: list[str] = Field(
-        default_factory=list
-    )
+    related_entities: list[str] = Field(default_factory=list)
 
     # ============================================================
     # VALIDATION
@@ -162,22 +158,16 @@ class Memory(BaseModel):
                 continue
 
             if value.tzinfo is None or value.utcoffset() is None:
-                raise ValueError(
-                    f"{field_name} must be timezone-aware."
-                )
+                raise ValueError(f"{field_name} must be timezone-aware.")
 
         if (
             self.valid_from is not None
             and self.valid_until is not None
             and self.valid_from > self.valid_until
         ):
-            raise ValueError(
-                "valid_from cannot be later than valid_until."
-            )
+            raise ValueError("valid_from cannot be later than valid_until.")
 
         if self.importance >= 0.7 and not self.evidence:
-            raise ValueError(
-                "Important memories must have at least one evidence reference."
-            )
+            raise ValueError("Important memories must have at least one evidence reference.")
 
         return self

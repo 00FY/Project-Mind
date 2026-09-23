@@ -38,8 +38,6 @@ def test_member1_service_registers_with_projectmind_core(
 
     assert result.files_indexed == 1
 
-    summary = core.code_intelligence.get_file_summary(
-        "src/auth.py"
-    )
+    summary = core.code_intelligence.get_file_summary("src/auth.py")
 
     assert "AuthService" in summary.classes

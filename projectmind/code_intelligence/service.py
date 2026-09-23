@@ -52,29 +52,13 @@ class CodeIntelligenceService(CodeIntelligence):
     def get_file_summary(self, file_path: str) -> FileSummary:
         """Return a basic summary of a source file."""
         path = self.project_root / file_path
-        entities = [
-            entity
-            for entity in self._entities
-            if entity.file == file_path
-        ]
+        entities = [entity for entity in self._entities if entity.file == file_path]
 
-        functions = [
-            entity.name
-            for entity in entities
-            if entity.type.value == "function"
-        ]
+        functions = [entity.name for entity in entities if entity.type.value == "function"]
 
-        classes = [
-            entity.name
-            for entity in entities
-            if entity.type.value == "class"
-        ]
+        classes = [entity.name for entity in entities if entity.type.value == "class"]
 
-        imports = [
-            entity.name
-            for entity in entities
-            if entity.type.value == "import"
-        ]
+        imports = [entity.name for entity in entities if entity.type.value == "import"]
 
         language = "python" if path.suffix.lower() == ".py" else "unknown"
 
@@ -98,10 +82,13 @@ class CodeIntelligenceService(CodeIntelligence):
         """Return basic code matches by entity name."""
         query_lower = query.lower()
 
+        query_words = [w.lower() for w in query.split() if len(w) > 2]
+
         matches = [
             entity
             for entity in self._entities
             if query_lower in entity.name.lower()
+            or any(w in entity.name.lower() for w in query_words)
         ][:limit]
 
         results: list[CodeChunk] = []
@@ -117,7 +104,7 @@ class CodeIntelligenceService(CodeIntelligence):
             start = entity.line_start
             end = min(entity.line_end, len(lines))
 
-            content = "\n".join(lines[start - 1:end])
+            content = "\n".join(lines[start - 1 : end])
 
             results.append(
                 CodeChunk(

@@ -17,32 +17,24 @@ class ProjectConstitution(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    goal: str = Field(
-        min_length=1,
-        description="Primary goal of the project."
-    )
+    goal: str = Field(min_length=1, description="Primary goal of the project.")
 
     requirements: list[str] = Field(
-        default_factory=list,
-        description="Functional and technical requirements."
+        default_factory=list, description="Functional and technical requirements."
     )
 
     architecture: list[str] = Field(
-        default_factory=list,
-        description="High-level architectural components and structure."
+        default_factory=list, description="High-level architectural components and structure."
     )
 
     constraints: list[str] = Field(
-        default_factory=list,
-        description="Known project constraints and limitations."
+        default_factory=list, description="Known project constraints and limitations."
     )
 
     decisions: list[str] = Field(
-        default_factory=list,
-        description="Important architectural or technical decisions."
+        default_factory=list, description="Important architectural or technical decisions."
     )
 
     non_goals: list[str] = Field(
-        default_factory=list,
-        description="Things explicitly outside the project's scope."
+        default_factory=list, description="Things explicitly outside the project's scope."
     )

@@ -84,22 +84,19 @@ class SQLiteProjectMemory(ProjectMemory):
         goals = [
             memory.content
             for memory in memories
-            if memory.type == MemoryType.GOAL
-            and memory.status == MemoryStatus.ACTIVE
+            if memory.type == MemoryType.GOAL and memory.status == MemoryStatus.ACTIVE
         ]
 
         key_decisions = [
             memory.content
             for memory in memories
-            if memory.type == MemoryType.DECISION
-            and memory.status == MemoryStatus.ACTIVE
+            if memory.type == MemoryType.DECISION and memory.status == MemoryStatus.ACTIVE
         ]
 
         active_constraints = [
             memory.content
             for memory in memories
-            if memory.type == MemoryType.CONSTRAINT
-            and memory.status == MemoryStatus.ACTIVE
+            if memory.type == MemoryType.CONSTRAINT and memory.status == MemoryStatus.ACTIVE
         ]
 
         return ProjectSummary(
@@ -126,11 +123,7 @@ class SQLiteProjectMemory(ProjectMemory):
         categories: list[str] | None = None,
     ) -> list[KnowledgeItem]:
 
-        query_terms = [
-            term.lower()
-            for term in query.split()
-            if term.strip()
-        ]
+        query_terms = [term.lower() for term in query.split() if term.strip()]
 
         memories = self.repository.list_memories()
 
@@ -141,11 +134,7 @@ class SQLiteProjectMemory(ProjectMemory):
                 if category in categories
             }
 
-            memories = [
-                memory
-                for memory in memories
-                if memory.type in allowed_types
-            ]
+            memories = [memory for memory in memories if memory.type in allowed_types]
 
         scored: list[tuple[float, object]] = []
 
@@ -165,11 +154,7 @@ class SQLiteProjectMemory(ProjectMemory):
             if not query_terms:
                 score = memory.importance
             else:
-                matched = sum(
-                    1
-                    for term in query_terms
-                    if term in searchable
-                )
+                matched = sum(1 for term in query_terms if term in searchable)
 
                 if matched == 0:
                     continue
@@ -189,10 +174,7 @@ class SQLiteProjectMemory(ProjectMemory):
             reverse=True,
         )
 
-        return [
-            self._to_knowledge_item(memory)
-            for _, memory in scored[:limit]
-        ]
+        return [self._to_knowledge_item(memory) for _, memory in scored[:limit]]
 
     def audit_memory(self) -> AuditReport:
         memories = self.repository.list_memories()
@@ -200,7 +182,8 @@ class SQLiteProjectMemory(ProjectMemory):
         stale_items = [
             self._to_knowledge_item(memory)
             for memory in memories
-            if memory.status in {
+            if memory.status
+            in {
                 MemoryStatus.STALE,
                 MemoryStatus.NEEDS_REVIEW,
             }
@@ -213,27 +196,19 @@ class SQLiteProjectMemory(ProjectMemory):
         ]
 
         missing_evidence = [
-            self._to_knowledge_item(memory)
-            for memory in memories
-            if not memory.evidence
+            self._to_knowledge_item(memory) for memory in memories if not memory.evidence
         ]
 
         recommendations: list[str] = []
 
         if stale_items:
-            recommendations.append(
-                "Review stale or review-required project memories."
-            )
+            recommendations.append("Review stale or review-required project memories.")
 
         if contradicted_items:
-            recommendations.append(
-                "Resolve contradicted project memories."
-            )
+            recommendations.append("Resolve contradicted project memories.")
 
         if missing_evidence:
-            recommendations.append(
-                "Add evidence references to unsupported memories."
-            )
+            recommendations.append("Add evidence references to unsupported memories.")
 
         return AuditReport(
             stale_items=stale_items,
@@ -246,23 +221,18 @@ class SQLiteProjectMemory(ProjectMemory):
     def get_status(self) -> CoreMemoryStatus:
         memories = self.repository.list_memories()
 
-        current_items = sum(
-            memory.status == MemoryStatus.ACTIVE
-            for memory in memories
-        )
+        current_items = sum(memory.status == MemoryStatus.ACTIVE for memory in memories)
 
         stale_items = sum(
-            memory.status in {
+            memory.status
+            in {
                 MemoryStatus.STALE,
                 MemoryStatus.NEEDS_REVIEW,
             }
             for memory in memories
         )
 
-        contradicted_items = sum(
-            memory.status == MemoryStatus.CONTRADICTED
-            for memory in memories
-        )
+        contradicted_items = sum(memory.status == MemoryStatus.CONTRADICTED for memory in memories)
 
         healthy = True
         error_message = ""

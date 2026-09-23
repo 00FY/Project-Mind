@@ -28,17 +28,9 @@ class RelationshipExtractor:
         """Create contains relationships between classes and their methods."""
         relationships: list[CodeRelationship] = []
 
-        classes = [
-            entity
-            for entity in entities
-            if entity.type.value == "class"
-        ]
+        classes = [entity for entity in entities if entity.type.value == "class"]
 
-        methods = [
-            entity
-            for entity in entities
-            if entity.type.value == "method"
-        ]
+        methods = [entity for entity in entities if entity.type.value == "method"]
 
         for method in methods:
             containing_classes = [

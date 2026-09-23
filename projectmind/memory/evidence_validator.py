@@ -54,10 +54,7 @@ class EvidenceValidator:
         # IMPORTANT MEMORY EVIDENCE RULE
         # ========================================================
 
-        requires_evidence = (
-            memory.importance >= 0.7
-            or memory.type in self.REQUIRED_EVIDENCE_TYPES
-        )
+        requires_evidence = memory.importance >= 0.7 or memory.type in self.REQUIRED_EVIDENCE_TYPES
 
         if requires_evidence and not memory.evidence:
             messages.append(
@@ -76,22 +73,13 @@ class EvidenceValidator:
 
             except KeyError:
                 missing_evidence.append(evidence_id)
-                messages.append(
-                    f"Memory {memory.id} references missing evidence "
-                    f"{evidence_id}."
-                )
+                messages.append(f"Memory {memory.id} references missing evidence {evidence_id}.")
 
         # ========================================================
         # FINAL VALIDITY
         # ========================================================
 
-        is_valid = (
-            len(missing_evidence) == 0
-            and not (
-                requires_evidence
-                and not memory.evidence
-            )
-        )
+        is_valid = len(missing_evidence) == 0 and not (requires_evidence and not memory.evidence)
 
         return EvidenceValidationResult(
             valid=is_valid,

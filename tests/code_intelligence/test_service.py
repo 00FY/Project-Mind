@@ -45,9 +45,7 @@ class CodeIntelligenceService(CodeIntelligence):
 
         self._last_indexed = datetime.now(UTC)
 
-        duration = (
-            self._last_indexed - start
-        ).total_seconds()
+        duration = (self._last_indexed - start).total_seconds()
 
         return IndexResult(
             files_indexed=len(scanned_files),
@@ -59,35 +57,15 @@ class CodeIntelligenceService(CodeIntelligence):
         """Return a summary of a source file."""
         path = self.project_root / file_path
 
-        entities = [
-            entity
-            for entity in self._entities
-            if entity.file == file_path
-        ]
+        entities = [entity for entity in self._entities if entity.file == file_path]
 
-        functions = [
-            entity.name
-            for entity in entities
-            if entity.type.value == "function"
-        ]
+        functions = [entity.name for entity in entities if entity.type.value == "function"]
 
-        classes = [
-            entity.name
-            for entity in entities
-            if entity.type.value == "class"
-        ]
+        classes = [entity.name for entity in entities if entity.type.value == "class"]
 
-        imports = [
-            entity.name
-            for entity in entities
-            if entity.type.value == "import"
-        ]
+        imports = [entity.name for entity in entities if entity.type.value == "import"]
 
-        language = (
-            "python"
-            if path.suffix.lower() == ".py"
-            else "unknown"
-        )
+        language = "python" if path.suffix.lower() == ".py" else "unknown"
 
         return FileSummary(
             path=file_path,
@@ -109,11 +87,9 @@ class CodeIntelligenceService(CodeIntelligence):
         """Return code chunks whose entity names match the query."""
         query_lower = query.lower()
 
-        matches = [
-            entity
-            for entity in self._entities
-            if query_lower in entity.name.lower()
-        ][:limit]
+        matches = [entity for entity in self._entities if query_lower in entity.name.lower()][
+            :limit
+        ]
 
         results: list[CodeChunk] = []
 
@@ -134,7 +110,7 @@ class CodeIntelligenceService(CodeIntelligence):
             )
 
             content = "\n".join(
-                lines[start - 1:end],
+                lines[start - 1 : end],
             )
 
             results.append(
@@ -145,10 +121,7 @@ class CodeIntelligenceService(CodeIntelligence):
                     content=content,
                     language=entity.language,
                     relevance_score=1.0,
-                    summary=(
-                        f"{entity.type.value}: "
-                        f"{entity.name}"
-                    ),
+                    summary=(f"{entity.type.value}: {entity.name}"),
                 )
             )
 

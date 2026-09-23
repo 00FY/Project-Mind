@@ -22,9 +22,6 @@ def test_extract_class_contains_method() -> None:
 
     assert len(relationships) == 2
 
-    relationship_types = {
-        relationship.relationship_type
-        for relationship in relationships
-    }
+    relationship_types = {relationship.relationship_type for relationship in relationships}
 
     assert relationship_types == {RelationshipType.CONTAINS}

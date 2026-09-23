@@ -36,9 +36,7 @@ class MemoryRepository:
 
         self._connection.row_factory = sqlite3.Row
 
-        self._connection.execute(
-            "PRAGMA foreign_keys = ON"
-        )
+        self._connection.execute("PRAGMA foreign_keys = ON")
 
         self._initialize_database()
 
@@ -90,16 +88,12 @@ class MemoryRepository:
             version = next_version
 
     def _get_schema_version(self) -> int:
-        row = self._connection.execute(
-            "PRAGMA user_version"
-        ).fetchone()
+        row = self._connection.execute("PRAGMA user_version").fetchone()
 
         return row[0]
 
     def _set_schema_version(self, version: int) -> None:
-        self._connection.execute(
-            f"PRAGMA user_version = {version}"
-        )
+        self._connection.execute(f"PRAGMA user_version = {version}")
 
     def _database_has_tables(self) -> bool:
         row = self._connection.execute(
@@ -143,13 +137,10 @@ class MemoryRepository:
 
         if missing_tables:
             raise RuntimeError(
-                "Existing database is missing required tables: "
-                + ", ".join(sorted(missing_tables))
+                "Existing database is missing required tables: " + ", ".join(sorted(missing_tables))
             )
 
         self._migrate_memory_evidence_foreign_key()
-
-            
 
     def _migrate_memory_evidence_foreign_key(self) -> None:
         """
@@ -171,10 +162,7 @@ class MemoryRepository:
             referenced_table = foreign_key["table"]
             from_column = foreign_key["from"]
 
-            if (
-                referenced_table == "evidence"
-                and from_column == "evidence_id"
-            ):
+            if referenced_table == "evidence" and from_column == "evidence_id":
                 evidence_foreign_key = foreign_key
                 break
 
@@ -330,7 +318,6 @@ class MemoryRepository:
                 """
             )
 
-
     def _migrate_v1_to_v2(self) -> None:
         """
         Upgrade schema version 1 to schema version 2.
@@ -396,9 +383,7 @@ class MemoryRepository:
             ).fetchall()
 
             for row in rows:
-                entities = json.loads(
-                    row["related_entities"]
-                )
+                entities = json.loads(row["related_entities"])
 
                 self._connection.executemany(
                     """
@@ -408,10 +393,7 @@ class MemoryRepository:
                     )
                     VALUES (?, ?)
                     """,
-                    [
-                        (row["id"], entity)
-                        for entity in dict.fromkeys(entities)
-                    ],
+                    [(row["id"], entity) for entity in dict.fromkeys(entities)],
                 )
 
     def _migrate_v2_to_v3(self) -> None:
@@ -450,7 +432,7 @@ class MemoryRepository:
                 ADD COLUMN invalidated_at TEXT
                 """
             )
-    
+
     # ------------------------------------------------------------------
     # DATETIME HELPERS
     # ------------------------------------------------------------------
@@ -470,9 +452,7 @@ class MemoryRepository:
             return None
 
         if value.tzinfo is None or value.utcoffset() is None:
-            raise ValueError(
-                "ProjectMind datetimes must be timezone-aware."
-            )
+            raise ValueError("ProjectMind datetimes must be timezone-aware.")
 
         return value.isoformat()
 
@@ -490,9 +470,7 @@ class MemoryRepository:
         parsed = datetime.fromisoformat(value)
 
         if parsed.tzinfo is None or parsed.utcoffset() is None:
-            raise ValueError(
-                "Stored ProjectMind datetime is not timezone-aware."
-            )
+            raise ValueError("Stored ProjectMind datetime is not timezone-aware.")
 
         return parsed
 
@@ -508,13 +486,9 @@ class MemoryRepository:
         Convert a SQLite memory row into a Pydantic Memory object.
         """
 
-        evidence_ids = self._get_evidence_ids_for_memory(
-            row["id"]
-        )
+        evidence_ids = self._get_evidence_ids_for_memory(row["id"])
 
-        related_entities = self._get_entities_for_memory(
-            row["id"]
-        )
+        related_entities = self._get_entities_for_memory(row["id"])
 
         return Memory(
             id=row["id"],
@@ -522,33 +496,17 @@ class MemoryRepository:
             content=row["content"],
             subject=row["subject"],
             value=row["value"],
-            origin=(
-                MemoryOrigin(row["origin"])
-                if row["origin"] is not None
-                else None
-            ),
+            origin=(MemoryOrigin(row["origin"]) if row["origin"] is not None else None),
             importance=row["importance"],
             confidence=row["confidence"],
             status=MemoryStatus(row["status"]),
-            created_at=self._string_to_datetime(
-                row["created_at"]
-            ),
-            updated_at=self._string_to_datetime(
-                row["updated_at"]
-            ),
-            invalidated_at=self._string_to_datetime(
-                row["invalidated_at"]
-            ),
-            last_verified_at=self._string_to_datetime(
-                row["last_verified_at"]
-            ),
+            created_at=self._string_to_datetime(row["created_at"]),
+            updated_at=self._string_to_datetime(row["updated_at"]),
+            invalidated_at=self._string_to_datetime(row["invalidated_at"]),
+            last_verified_at=self._string_to_datetime(row["last_verified_at"]),
             observed_at_commit=row["observed_at_commit"],
-            valid_from=self._string_to_datetime(
-                row["valid_from"]
-            ),
-            valid_until=self._string_to_datetime(
-                row["valid_until"]
-            ),
+            valid_from=self._string_to_datetime(row["valid_from"]),
+            valid_until=self._string_to_datetime(row["valid_until"]),
             evidence=evidence_ids,
             related_entities=related_entities,
         )
@@ -599,31 +557,17 @@ class MemoryRepository:
                         memory.importance,
                         memory.confidence,
                         memory.status.value,
-                        self._datetime_to_string(
-                            memory.created_at
-                        ),
-                        self._datetime_to_string(
-                            memory.updated_at
-                        ),
-                        self._datetime_to_string(
-                            memory.last_verified_at
-                        ),
+                        self._datetime_to_string(memory.created_at),
+                        self._datetime_to_string(memory.updated_at),
+                        self._datetime_to_string(memory.last_verified_at),
                         memory.observed_at_commit,
-                        self._datetime_to_string(
-                            memory.valid_from
-                        ),
-                        self._datetime_to_string(
-                            memory.valid_until
-                        ),
-                        json.dumps(
-                            memory.related_entities
-                        ),
+                        self._datetime_to_string(memory.valid_from),
+                        self._datetime_to_string(memory.valid_until),
+                        json.dumps(memory.related_entities),
                         memory.subject,
                         memory.value,
                         memory.origin.value if memory.origin else None,
-                        self._datetime_to_string(
-                            memory.invalidated_at
-                        ),
+                        self._datetime_to_string(memory.invalidated_at),
                     ),
                 )
 
@@ -638,9 +582,7 @@ class MemoryRepository:
                 )
 
         except sqlite3.IntegrityError as exc:
-            raise ValueError(
-                f"Memory '{memory.id}' could not be created."
-            ) from exc
+            raise ValueError(f"Memory '{memory.id}' could not be created.") from exc
 
         return self.get_memory(memory.id)
 
@@ -662,9 +604,7 @@ class MemoryRepository:
         ).fetchone()
 
         if row is None:
-            raise KeyError(
-                f"Memory '{memory_id}' does not exist."
-            )
+            raise KeyError(f"Memory '{memory_id}' does not exist.")
 
         return self._row_to_memory(row)
 
@@ -702,10 +642,7 @@ class MemoryRepository:
             parameters,
         ).fetchall()
 
-        return [
-            self._row_to_memory(row)
-            for row in rows
-        ]
+        return [self._row_to_memory(row) for row in rows]
 
     def list_memories_by_entity(
         self,
@@ -730,10 +667,7 @@ class MemoryRepository:
             (entity,),
         ).fetchall()
 
-        return [
-            self._row_to_memory(row)
-            for row in rows
-        ]
+        return [self._row_to_memory(row) for row in rows]
 
     def _update_memory_in_transaction(
         self,
@@ -789,9 +723,7 @@ class MemoryRepository:
         )
 
         if cursor.rowcount == 0:
-            raise KeyError(
-                f"Memory '{memory.id}' does not exist."
-            )
+            raise KeyError(f"Memory '{memory.id}' does not exist.")
 
         self._replace_memory_evidence(
             memory.id,
@@ -802,8 +734,6 @@ class MemoryRepository:
             memory.id,
             memory.related_entities,
         )
-
-        
 
     def update_memory(
         self,
@@ -818,10 +748,8 @@ class MemoryRepository:
                 self._update_memory_in_transaction(memory)
 
         except sqlite3.IntegrityError as exc:
-            raise ValueError(
-                f"Memory '{memory.id}' could not be updated."
-            ) from exc
-    
+            raise ValueError(f"Memory '{memory.id}' could not be updated.") from exc
+
     def delete_memory(
         self,
         memory_id: str,
@@ -843,9 +771,7 @@ class MemoryRepository:
             )
 
             if cursor.rowcount == 0:
-                raise KeyError(
-                    f"Memory '{memory_id}' does not exist."
-                )
+                raise KeyError(f"Memory '{memory_id}' does not exist.")
 
     # ------------------------------------------------------------------
     # EVIDENCE CRUD
@@ -888,9 +814,7 @@ class MemoryRepository:
                 )
 
         except sqlite3.IntegrityError as exc:
-            raise ValueError(
-                f"Evidence '{evidence.id}' could not be created."
-            ) from exc
+            raise ValueError(f"Evidence '{evidence.id}' could not be created.") from exc
 
         return self.get_evidence(evidence.id)
 
@@ -920,9 +844,7 @@ class MemoryRepository:
         ).fetchone()
 
         if row is None:
-            raise KeyError(
-                f"Evidence '{evidence_id}' does not exist."
-            )
+            raise KeyError(f"Evidence '{evidence_id}' does not exist.")
 
         return Evidence(
             id=row["id"],
@@ -1006,14 +928,10 @@ class MemoryRepository:
                 )
 
                 if cursor.rowcount == 0:
-                    raise KeyError(
-                        f"Evidence '{evidence.id}' does not exist."
-                    )
+                    raise KeyError(f"Evidence '{evidence.id}' does not exist.")
 
         except sqlite3.IntegrityError as exc:
-            raise ValueError(
-                f"Evidence '{evidence.id}' could not be updated."
-            ) from exc
+            raise ValueError(f"Evidence '{evidence.id}' could not be updated.") from exc
 
     def delete_evidence(
         self,
@@ -1038,9 +956,7 @@ class MemoryRepository:
                 )
 
                 if cursor.rowcount == 0:
-                    raise KeyError(
-                        f"Evidence '{evidence_id}' does not exist."
-                    )
+                    raise KeyError(f"Evidence '{evidence_id}' does not exist.")
 
         except sqlite3.IntegrityError as exc:
             raise ValueError(
@@ -1070,10 +986,7 @@ class MemoryRepository:
             (memory_id,),
         ).fetchall()
 
-        return [
-            row["evidence_id"]
-            for row in rows
-        ]
+        return [row["evidence_id"] for row in rows]
 
     def _get_entities_for_memory(
         self,
@@ -1093,10 +1006,7 @@ class MemoryRepository:
             (memory_id,),
         ).fetchall()
 
-        return [
-            row["entity"]
-            for row in rows
-        ]
+        return [row["entity"] for row in rows]
 
     def _replace_memory_evidence(
         self,
@@ -1109,14 +1019,10 @@ class MemoryRepository:
         Every referenced evidence ID must already exist.
         """
 
-        unique_evidence_ids = list(
-            dict.fromkeys(evidence_ids)
-        )
+        unique_evidence_ids = list(dict.fromkeys(evidence_ids))
 
         if unique_evidence_ids:
-            placeholders = ", ".join(
-                "?" for _ in unique_evidence_ids
-            )
+            placeholders = ", ".join("?" for _ in unique_evidence_ids)
 
             rows = self._connection.execute(
                 f"""
@@ -1127,10 +1033,7 @@ class MemoryRepository:
                 unique_evidence_ids,
             ).fetchall()
 
-            existing_ids = {
-                row["id"]
-                for row in rows
-            }
+            existing_ids = {row["id"] for row in rows}
 
             missing_ids = [
                 evidence_id
@@ -1140,8 +1043,7 @@ class MemoryRepository:
 
             if missing_ids:
                 raise ValueError(
-                    "Cannot link memory to missing evidence: "
-                    + ", ".join(missing_ids)
+                    "Cannot link memory to missing evidence: " + ", ".join(missing_ids)
                 )
 
         self._connection.execute(
@@ -1161,10 +1063,7 @@ class MemoryRepository:
                 )
                 VALUES (?, ?)
                 """,
-                [
-                    (memory_id, evidence_id)
-                    for evidence_id in unique_evidence_ids
-                ],
+                [(memory_id, evidence_id) for evidence_id in unique_evidence_ids],
             )
 
     def _replace_memory_entities(
@@ -1180,11 +1079,7 @@ class MemoryRepository:
         """
 
         unique_entities = list(
-            dict.fromkeys(
-                entity.strip()
-                for entity in entities
-                if entity.strip()
-            )
+            dict.fromkeys(entity.strip() for entity in entities if entity.strip())
         )
 
         self._connection.execute(
@@ -1204,13 +1099,9 @@ class MemoryRepository:
                 )
                 VALUES (?, ?)
                 """,
-                [
-                    (memory_id, entity)
-                    for entity in unique_entities
-                ],
+                [(memory_id, entity) for entity in unique_entities],
             )
-    
-    
+
     def _create_transition_log_in_transaction(
         self,
         transition,
@@ -1237,9 +1128,7 @@ class MemoryRepository:
                 transition.old_status.value,
                 transition.new_status.value,
                 transition.reason,
-                self._datetime_to_string(
-                    transition.changed_at
-                ),
+                self._datetime_to_string(transition.changed_at),
             ),
         )
 
@@ -1257,18 +1146,13 @@ class MemoryRepository:
 
         try:
             with self._connection:
-                self._update_memory_in_transaction(
-                    memory
-                )
+                self._update_memory_in_transaction(memory)
 
-                self._create_transition_log_in_transaction(
-                    transition
-                )
+                self._create_transition_log_in_transaction(transition)
 
         except sqlite3.IntegrityError as exc:
             raise ValueError(
-                f"Lifecycle transition for memory "
-                f"'{memory.id}' could not be persisted."
+                f"Lifecycle transition for memory '{memory.id}' could not be persisted."
             ) from exc
 
     def list_transition_logs(
@@ -1295,10 +1179,7 @@ class MemoryRepository:
             (memory_id,),
         ).fetchall()
 
-        return [
-            dict(row)
-            for row in rows
-        ]
+        return [dict(row) for row in rows]
 
     # ------------------------------------------------------------------
     # PROJECT CONSTITUTION
@@ -1386,25 +1267,13 @@ class MemoryRepository:
             ).fetchone()
 
         if row is None:
-            raise KeyError(
-                "Requested project constitution does not exist."
-            )
+            raise KeyError("Requested project constitution does not exist.")
 
         return ProjectConstitution(
             goal=row["goal"],
-            requirements=json.loads(
-                row["requirements"]
-            ),
-            architecture=json.loads(
-                row["architecture"]
-            ),
-            constraints=json.loads(
-                row["constraints"]
-            ),
-            decisions=json.loads(
-                row["decisions"]
-            ),
-            non_goals=json.loads(
-                row["non_goals"]
-            ),
+            requirements=json.loads(row["requirements"]),
+            architecture=json.loads(row["architecture"]),
+            constraints=json.loads(row["constraints"]),
+            decisions=json.loads(row["decisions"]),
+            non_goals=json.loads(row["non_goals"]),
         )

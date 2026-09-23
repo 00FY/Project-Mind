@@ -31,10 +31,7 @@ def validate_token(token):
     indexer = CodeIndexer(tmp_path)
     entities = indexer.index()
 
-    entity_types = [
-        (entity.type, entity.name)
-        for entity in entities
-    ]
+    entity_types = [(entity.type, entity.name) for entity in entities]
 
     assert ("import", "import sqlite3") in entity_types
     assert ("class", "AuthService") in entity_types
@@ -77,15 +74,9 @@ def test_indexer_extracts_relationships(tmp_path: Path) -> None:
 
     assert relationship.relationship_type.value == "contains"
 
-    class_entity = next(
-        entity for entity in entities
-        if entity.type.value == "class"
-    )
+    class_entity = next(entity for entity in entities if entity.type.value == "class")
 
-    method_entity = next(
-        entity for entity in entities
-        if entity.type.value == "method"
-    )
+    method_entity = next(entity for entity in entities if entity.type.value == "method")
 
     assert relationship.source_entity_id == class_entity.entity_id
     assert relationship.target_entity_id == method_entity.entity_id

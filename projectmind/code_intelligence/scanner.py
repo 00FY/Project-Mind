@@ -27,9 +27,7 @@ class RepositoryScanner:
         settings = get_settings()
 
         self.project_root = (
-            Path(project_root).resolve()
-            if project_root is not None
-            else settings.project.root
+            Path(project_root).resolve() if project_root is not None else settings.project.root
         )
 
         self.exclude_patterns = settings.project.exclude_patterns
@@ -67,8 +65,7 @@ class RepositoryScanner:
         relative_path = path.relative_to(self.project_root).as_posix()
 
         return any(
-            self._matches_pattern(relative_path, pattern)
-            for pattern in self.exclude_patterns
+            self._matches_pattern(relative_path, pattern) for pattern in self.exclude_patterns
         )
 
     @staticmethod

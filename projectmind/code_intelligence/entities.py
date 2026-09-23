@@ -82,11 +82,7 @@ class PythonEntityExtractor:
             name = self._get_node_name(node, source_bytes)
 
             if name:
-                entity_type = (
-                    EntityType.METHOD
-                    if inside_class
-                    else EntityType.FUNCTION
-                )
+                entity_type = EntityType.METHOD if inside_class else EntityType.FUNCTION
 
                 entities.append(
                     self._create_entity(
@@ -98,9 +94,7 @@ class PythonEntityExtractor:
                 )
 
         elif node_type in {"import_statement", "import_from_statement"}:
-            name = source_bytes[
-                node.start_byte:node.end_byte
-            ].decode("utf-8")
+            name = source_bytes[node.start_byte : node.end_byte].decode("utf-8")
 
             entities.append(
                 self._create_entity(
@@ -131,9 +125,7 @@ class PythonEntityExtractor:
         if name_node is None:
             return None
 
-        return source_bytes[
-            name_node.start_byte:name_node.end_byte
-        ].decode("utf-8")
+        return source_bytes[name_node.start_byte : name_node.end_byte].decode("utf-8")
 
     @staticmethod
     def _create_entity(
@@ -146,9 +138,7 @@ class PythonEntityExtractor:
 
         raw_id = f"{file_path}:{entity_type.value}:{name}:{node.start_byte}"
 
-        entity_id = sha1(
-            raw_id.encode("utf-8")
-        ).hexdigest()[:12]
+        entity_id = sha1(raw_id.encode("utf-8")).hexdigest()[:12]
 
         return CodeEntity(
             entity_id=entity_id,

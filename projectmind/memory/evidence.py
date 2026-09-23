@@ -210,8 +210,6 @@ class Evidence(BaseModel):
             and self.line_end is not None
             and self.line_end < self.line_start
         ):
-            raise ValueError(
-                "line_end must be greater than or equal to line_start."
-            )
+            raise ValueError("line_end must be greater than or equal to line_start.")
 
         return self
