@@ -417,10 +417,45 @@ _core: ProjectMindCore | None = None
 
 
 def get_core() -> ProjectMindCore:
-    """Return the global ProjectMindCore instance."""
+    """Return the global ProjectMindCore instance, auto-discovering concrete services if available."""
     global _core
     if _core is None:
-        _core = ProjectMindCore()
+        ci_service = None
+        memory_service = None
+        retrieval_service = None
+
+        try:
+            from pathlib import Path
+            from projectmind.code_intelligence.service import CodeIntelligenceService
+            ci_service = CodeIntelligenceService(Path.cwd())
+        except Exception:
+            pass
+
+        try:
+            from pathlib import Path
+            from projectmind.memory.repository import MemoryRepository
+            from projectmind.memory.project_memory import SQLiteProjectMemory
+            db_path = Path.cwd() / ".projectmind" / "projectmind.db"
+            if db_path.parent.exists():
+                repo = MemoryRepository(db_path)
+                memory_service = SQLiteProjectMemory(repo)
+        except Exception:
+            pass
+
+        try:
+            from projectmind.retrieval.service import RetrievalService
+            retrieval_service = RetrievalService(
+                code_intelligence=ci_service,
+                project_memory=memory_service,
+            )
+        except Exception:
+            pass
+
+        _core = ProjectMindCore(
+            code_intelligence=ci_service,
+            project_memory=memory_service,
+            context_retriever=retrieval_service,
+        )
     return _core
 
 

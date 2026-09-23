@@ -456,7 +456,7 @@ def context(task_description: str, budget: int | None, no_code: bool, json_outpu
             )
 
             if ctx.warnings:
-                console.print("\n[bold red]⚠ Warnings[/bold red]")
+                console.print("\n[bold red][WARN] Warnings[/bold red]")
                 for w in ctx.warnings:
                     sev_colors = {
                         "critical": "red",
