@@ -138,3 +138,127 @@ def test_import_relationships_are_unique() -> None:
     assert len(import_relationships) == 1
     assert import_relationships[0].source_entity_id == "auth-file"
     assert import_relationships[0].target_entity_id == "database-file"
+
+
+def test_extract_inheritance_relationship() -> None:
+    source = """class AuthService:
+    def login(self):
+        return True
+
+
+class AdminService(AuthService):
+    def delete_user(self):
+        return True
+"""
+
+    entities = [
+        CodeEntity(
+            entity_id="auth-class",
+            type=EntityType.CLASS,
+            name="AuthService",
+            file="auth.py",
+            line_start=1,
+            line_end=3,
+            language="python",
+        ),
+        CodeEntity(
+            entity_id="admin-class",
+            type=EntityType.CLASS,
+            name="AdminService",
+            file="auth.py",
+            line_start=6,
+            line_end=8,
+            language="python",
+        ),
+    ]
+
+    extractor = RelationshipExtractor()
+
+    relationships = extractor.extract(
+        entities,
+        {"auth.py": source},
+    )
+
+    inheritance_relationships = [
+        relationship
+        for relationship in relationships
+        if relationship.relationship_type
+        == RelationshipType.INHERITS
+    ]
+
+    assert len(inheritance_relationships) == 1
+
+    relationship = inheritance_relationships[0]
+
+    assert relationship.source_entity_id == "admin-class"
+    assert relationship.target_entity_id == "auth-class"
+
+
+def test_extract_multiple_inheritance_relationships() -> None:
+    source = """class AuthService:
+    pass
+
+
+class LoggingMixin:
+    pass
+
+
+class AdminService(AuthService, LoggingMixin):
+    pass
+"""
+
+    entities = [
+        CodeEntity(
+            entity_id="auth-class",
+            type=EntityType.CLASS,
+            name="AuthService",
+            file="auth.py",
+            line_start=1,
+            line_end=2,
+            language="python",
+        ),
+        CodeEntity(
+            entity_id="logging-class",
+            type=EntityType.CLASS,
+            name="LoggingMixin",
+            file="auth.py",
+            line_start=5,
+            line_end=6,
+            language="python",
+        ),
+        CodeEntity(
+            entity_id="admin-class",
+            type=EntityType.CLASS,
+            name="AdminService",
+            file="auth.py",
+            line_start=9,
+            line_end=10,
+            language="python",
+        ),
+    ]
+
+    extractor = RelationshipExtractor()
+
+    relationships = extractor.extract(
+        entities,
+        {"auth.py": source},
+    )
+
+    inheritance_relationships = [
+        relationship
+        for relationship in relationships
+        if relationship.relationship_type
+        == RelationshipType.INHERITS
+    ]
+
+    assert len(inheritance_relationships) == 2
+
+    targets = {
+        relationship.target_entity_id
+        for relationship in inheritance_relationships
+    }
+
+    assert targets == {
+        "auth-class",
+        "logging-class",
+    }

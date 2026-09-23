@@ -89,3 +89,50 @@ def test_indexer_extracts_relationships(tmp_path: Path) -> None:
 
     assert relationship.source_entity_id == class_entity.entity_id
     assert relationship.target_entity_id == method_entity.entity_id
+
+
+def test_indexer_extracts_inheritance_relationship(
+    tmp_path: Path,
+) -> None:
+    """The indexer should detect inheritance between classes."""
+    create_file(
+        tmp_path / "auth.py",
+        """class AuthService:
+    pass
+
+
+class AdminService(AuthService):
+    pass
+""",
+    )
+
+    indexer = CodeIndexer(tmp_path)
+
+    entities = indexer.index()
+
+    auth_class = next(
+        entity
+        for entity in entities
+        if entity.type.value == "class"
+        and entity.name == "AuthService"
+    )
+
+    admin_class = next(
+        entity
+        for entity in entities
+        if entity.type.value == "class"
+        and entity.name == "AdminService"
+    )
+
+    inheritance_relationships = [
+        relationship
+        for relationship in indexer.relationships
+        if relationship.relationship_type.value == "inherits"
+    ]
+
+    assert len(inheritance_relationships) == 1
+
+    relationship = inheritance_relationships[0]
+
+    assert relationship.source_entity_id == admin_class.entity_id
+    assert relationship.target_entity_id == auth_class.entity_id

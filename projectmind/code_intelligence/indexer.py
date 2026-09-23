@@ -23,15 +23,20 @@ class CodeIndexer:
         self.extractor = PythonEntityExtractor()
         self.relationship_extractor = RelationshipExtractor()
         self.relationships: list[CodeRelationship] = []
+        self.source_files: dict[str, str] = {}
 
     def index(self) -> list[CodeEntity]:
         """
-        Scan the repository and extract entities from supported source files.
+        Scan the repository and extract entities and relationships.
 
         Currently, Python files are parsed with Tree-sitter.
         """
         scanned_files = self.scanner.scan()
+
         entities: list[CodeEntity] = []
+
+        self.relationships = []
+        self.source_files = {}
 
         for scanned_file in scanned_files:
             if scanned_file.language != "python":
@@ -44,7 +49,10 @@ class CodeIndexer:
             file_entities = self._extract_file(scanned_file)
             entities.extend(file_entities)
 
-        self.relationships = self.relationship_extractor.extract(entities)
+        self.relationships = self.relationship_extractor.extract(
+            entities,
+            self.source_files,
+        )
 
         return entities
 
@@ -54,22 +62,27 @@ class CodeIndexer:
     ) -> list[CodeEntity]:
         """Read one source file and extract its entities."""
         file_path = self.project_root / scanned_file.path
-        source_code = file_path.read_text(encoding="utf-8")
+
+        source_code = file_path.read_text(
+            encoding="utf-8",
+        )
+
+        self.source_files[scanned_file.path] = source_code
 
         return self.extractor.extract(
             source_code=source_code,
             file_path=scanned_file.path,
         )
 
-
     def _create_file_entity(
-    self,
-    scanned_file: ScannedFile,
+        self,
+        scanned_file: ScannedFile,
     ) -> CodeEntity:
         """Create a CodeEntity representing a source file."""
         file_path = scanned_file.path
 
         raw_id = f"{file_path}:file"
+
         entity_id = sha1(
             raw_id.encode("utf-8")
         ).hexdigest()[:12]
