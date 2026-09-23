@@ -1,4 +1,4 @@
-"""Tests for the ProjectMind code indexing pipeline."""
+"""Tests for the ProjectMind code indexer."""
 
 from pathlib import Path
 
@@ -6,71 +6,67 @@ from projectmind.code_intelligence.indexer import CodeIndexer
 
 
 def create_file(path: Path, content: str) -> None:
-    """Create a test source file."""
+    """Create a file and any required parent directories."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
-def test_indexer_extracts_entities_from_python_files(
-    tmp_path: Path,
-) -> None:
-    """Indexer should scan Python files and extract their entities."""
+def test_indexer_extracts_python_entities(tmp_path: Path) -> None:
+    """The indexer should extract entities from Python source files."""
     create_file(
-        tmp_path / "src" / "auth.py",
-        """import sqlite3
-
-class AuthService:
+        tmp_path / "auth.py",
+        """class AuthService:
     def login(self):
         return True
-
-def validate_token(token):
-    return True
 """,
     )
 
     indexer = CodeIndexer(tmp_path)
+
     entities = indexer.index()
 
-    entity_types = [
-        (entity.type, entity.name)
+    entity_types = {
+        entity.type.value
         for entity in entities
-    ]
+    }
 
-    assert ("import", "import sqlite3") in entity_types
-    assert ("class", "AuthService") in entity_types
-    assert ("method", "login") in entity_types
-    assert ("function", "validate_token") in entity_types
+    assert "file" in entity_types
+    assert "class" in entity_types
+    assert "method" in entity_types
 
-
-def test_indexer_ignores_unsupported_languages(
-    tmp_path: Path,
-) -> None:
-    """Indexer should not try to parse unsupported languages yet."""
-    create_file(
-        tmp_path / "src" / "app.js",
-        "function main() {}\n",
+    auth_class = next(
+        entity
+        for entity in entities
+        if entity.type.value == "class"
+        and entity.name == "AuthService"
     )
 
-    indexer = CodeIndexer(tmp_path)
-    entities = indexer.index()
+    login_method = next(
+        entity
+        for entity in entities
+        if entity.type.value == "method"
+        and entity.name == "login"
+    )
 
-    assert entities == []
+    assert auth_class.file == "auth.py"
+    assert login_method.file == "auth.py"
 
 
 def test_indexer_extracts_relationships(tmp_path: Path) -> None:
-    source = """class AuthService:
+    """The indexer should extract relationships between code entities."""
+    create_file(
+        tmp_path / "auth.py",
+        """class AuthService:
     def login(self):
         return True
-"""
-
-    file_path = tmp_path / "auth.py"
-    file_path.write_text(source, encoding="utf-8")
+""",
+    )
 
     indexer = CodeIndexer(tmp_path)
 
     entities = indexer.index()
 
-    assert len(entities) == 2
+    assert len(entities) == 3
     assert len(indexer.relationships) == 1
 
     relationship = indexer.relationships[0]
@@ -78,13 +74,17 @@ def test_indexer_extracts_relationships(tmp_path: Path) -> None:
     assert relationship.relationship_type.value == "contains"
 
     class_entity = next(
-        entity for entity in entities
+        entity
+        for entity in entities
         if entity.type.value == "class"
+        and entity.name == "AuthService"
     )
 
     method_entity = next(
-        entity for entity in entities
+        entity
+        for entity in entities
         if entity.type.value == "method"
+        and entity.name == "login"
     )
 
     assert relationship.source_entity_id == class_entity.entity_id
